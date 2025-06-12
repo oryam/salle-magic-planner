@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,11 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar, Plus } from 'lucide-react';
 import { useRestaurant } from '@/context/RestaurantContext';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import TableIcon from './TableIcon';
 
-const ReservationForm = () => {
+interface ReservationFormProps {
+  currentDate?: Date;
+  period?: string;
+}
+
+const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: ReservationFormProps) => {
   const { getTablesWithReservations, addReservation } = useRestaurant();
   const [open, setOpen] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState('');
@@ -19,6 +24,33 @@ const ReservationForm = () => {
   const [heure, setHeure] = useState('');
   const [nombrePersonnes, setNombrePersonnes] = useState('');
   const [nomClient, setNomClient] = useState('');
+
+  // Pré-remplir la date selon la période
+  useEffect(() => {
+    if (open) {
+      let defaultDate: Date;
+      
+      if (period === 'jour') {
+        defaultDate = currentDate;
+      } else {
+        // Pour semaine, mois, année : aujourd'hui + 1
+        defaultDate = addDays(new Date(), 1);
+      }
+      
+      setDate(format(defaultDate, 'yyyy-MM-dd'));
+    }
+  }, [open, currentDate, period]);
+
+  // Pré-remplir le nombre de personnes selon la table sélectionnée
+  useEffect(() => {
+    if (selectedTableId) {
+      const tablesLibres = getTablesWithReservations().filter(table => table.statut === 'libre');
+      const selectedTable = tablesLibres.find(table => table.id === selectedTableId);
+      if (selectedTable) {
+        setNombrePersonnes(selectedTable.nombrePersonnes.toString());
+      }
+    }
+  }, [selectedTableId, getTablesWithReservations]);
 
   const tablesLibres = getTablesWithReservations().filter(table => table.statut === 'libre');
 

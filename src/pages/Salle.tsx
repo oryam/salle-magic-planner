@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -56,7 +57,7 @@ const Salle = () => {
     }
   };
 
-  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart());
+  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period);
   const tablesInSidebar = tablesWithReservations.filter(table => !table.position);
   const tablesOnFloor = tablesWithReservations.filter(table => table.position);
 
@@ -227,6 +228,7 @@ const Salle = () => {
                     key={table.id}
                     table={table}
                     statut={table.statut}
+                    reservations={table.reservations}
                   />
                 ))}
                 

@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Table, Reservation, TableWithReservations, TableStatus } from '@/types/restaurant';
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 
 interface RestaurantContextType {
   tables: Table[];
@@ -11,7 +12,7 @@ interface RestaurantContextType {
   addReservation: (reservation: Omit<Reservation, 'id'>) => void;
   updateReservation: (id: string, reservation: Partial<Reservation>) => void;
   deleteReservation: (id: string) => void;
-  getTablesWithReservations: (date?: Date) => TableWithReservations[];
+  getTablesWithReservations: (date?: Date, period?: string) => TableWithReservations[];
   getTableStatus: (tableId: string, date: Date) => TableStatus;
 }
 
@@ -112,13 +113,39 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     return 'libre';
   };
 
-  const getTablesWithReservations = (date?: Date): TableWithReservations[] => {
+  const getTablesWithReservations = (date?: Date, period?: string): TableWithReservations[] => {
     const targetDate = date || new Date();
+    
+    // Déterminer la plage de dates selon la période
+    let startDate: Date;
+    let endDate: Date;
+    
+    switch (period) {
+      case 'jour':
+        startDate = startOfDay(targetDate);
+        endDate = endOfDay(targetDate);
+        break;
+      case 'semaine':
+        startDate = startOfWeek(targetDate, { weekStartsOn: 1 });
+        endDate = endOfWeek(targetDate, { weekStartsOn: 1 });
+        break;
+      case 'mois':
+        startDate = startOfMonth(targetDate);
+        endDate = endOfMonth(targetDate);
+        break;
+      case 'annee':
+        startDate = startOfYear(targetDate);
+        endDate = endOfYear(targetDate);
+        break;
+      default:
+        startDate = startOfDay(targetDate);
+        endDate = endOfDay(targetDate);
+    }
     
     return tables.map(table => {
       const tableReservations = reservations.filter(res => {
         const resDate = new Date(res.date);
-        return res.tableId === table.id && resDate >= targetDate;
+        return res.tableId === table.id && resDate >= startDate && resDate <= endDate;
       }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       const statut = getTableStatus(table.id, targetDate);

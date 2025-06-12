@@ -65,14 +65,14 @@ const Reservations = () => {
     return format(date, 'EEE dd/MM HH:mm', { locale: fr });
   };
 
-  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart());
+  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period);
   
   const stats = {
     tablesLibres: tablesWithReservations.filter(t => t.statut === 'libre').length,
     tablesReservees: tablesWithReservations.filter(t => t.statut === 'reservee').length,
     totalPersonnes: tablesWithReservations
-      .filter(t => t.statut === 'reservee')
-      .reduce((sum, table) => sum + table.nombrePersonnes, 0)
+      .filter(t => t.reservations.length > 0)
+      .reduce((sum, table) => sum + table.reservations.reduce((tableSum, res) => tableSum + res.nombrePersonnes, 0), 0)
   };
 
   const getStatusBadge = (statut: string) => {
@@ -114,7 +114,7 @@ const Reservations = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Tableau de bord des réservations</h1>
-          <ReservationForm />
+          <ReservationForm currentDate={currentDate} period={period} />
         </div>
 
         {/* Contrôles de période */}

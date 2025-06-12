@@ -12,14 +12,22 @@ import { cn } from '@/lib/utils';
 interface DraggableTableProps {
   table: Table;
   statut: 'libre' | 'reservee' | 'attente';
+  reservations?: any[];
 }
 
-const DraggableTable = ({ table, statut }: DraggableTableProps) => {
+const DraggableTable = ({ table, statut, reservations = [] }: DraggableTableProps) => {
   const { updateTable, getTableStatus } = useRestaurant();
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const [customColor, setCustomColor] = useState(table.couleur || '');
+
+  // Obtenir la première réservation pour aujourd'hui
+  const todayReservation = reservations.find(res => {
+    const resDate = new Date(res.date);
+    const today = new Date();
+    return resDate.toDateString() === today.toDateString();
+  });
 
   const getStatusColor = () => {
     if (table.couleur) return table.couleur;
@@ -45,7 +53,7 @@ const DraggableTable = ({ table, statut }: DraggableTableProps) => {
       fontWeight: 'bold',
       fontSize: '12px',
       transform: `rotate(${rotation}deg)`,
-      touchAction: 'none', // Empêche le comportement de scroll par défaut sur mobile
+      touchAction: 'none',
     };
 
     switch (forme) {
@@ -252,6 +260,16 @@ const DraggableTable = ({ table, statut }: DraggableTableProps) => {
         <div className="absolute -bottom-6 left-0 text-xs text-muted-foreground">
           {table.nombrePersonnes}p
         </div>
+
+        {/* Informations de réservation si la table est réservée */}
+        {statut === 'reservee' && todayReservation && (
+          <div className="absolute -bottom-12 left-0 text-xs bg-white text-black px-1 py-0.5 rounded shadow-sm border max-w-20 text-center">
+            <div className="font-semibold">{todayReservation.nombrePersonnes}p</div>
+            {todayReservation.nomClient && (
+              <div className="truncate">{todayReservation.nomClient}</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
