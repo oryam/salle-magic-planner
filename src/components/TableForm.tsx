@@ -1,0 +1,165 @@
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus } from 'lucide-react';
+import { Table, TableShape } from '@/types/restaurant';
+import { useRestaurant } from '@/context/RestaurantContext';
+
+interface TableFormProps {
+  table?: Table;
+  isEdit?: boolean;
+  onClose?: () => void;
+}
+
+const TableForm = ({ table, isEdit = false, onClose }: TableFormProps) => {
+  const { addTable, updateTable } = useRestaurant();
+  const [open, setOpen] = useState(false);
+  const [numero, setNumero] = useState(table?.numero || '');
+  const [forme, setForme] = useState<TableShape>(table?.forme || 'ronde');
+  const [nombrePersonnes, setNombrePersonnes] = useState(table?.nombrePersonnes || '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const tableData = {
+      numero: Number(numero),
+      forme,
+      nombrePersonnes: Number(nombrePersonnes),
+      ...(table && { position: table.position, rotation: table.rotation, couleur: table.couleur })
+    };
+
+    if (isEdit && table) {
+      updateTable(table.id, tableData);
+      onClose?.();
+    } else {
+      addTable(tableData);
+      setOpen(false);
+      resetForm();
+    }
+  };
+
+  const resetForm = () => {
+    setNumero('');
+    setForme('ronde');
+    setNombrePersonnes('');
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      resetForm();
+    }
+  };
+
+  if (isEdit) {
+    return (
+      <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="numero">Numéro de table</Label>
+            <Input
+              id="numero"
+              type="number"
+              value={numero}
+              onChange={(e) => setNumero(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="forme">Forme</Label>
+            <Select value={forme} onValueChange={(value: TableShape) => setForme(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ronde">Ronde</SelectItem>
+                <SelectItem value="carre">Carrée</SelectItem>
+                <SelectItem value="rectangulaire">Rectangulaire</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="nombrePersonnes">Nombre de personnes</Label>
+            <Input
+              id="nombrePersonnes"
+              type="number"
+              value={nombrePersonnes}
+              onChange={(e) => setNombrePersonnes(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="flex space-x-2">
+            <Button type="submit">Modifier</Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Annuler
+            </Button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Ajouter une table
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Ajouter une nouvelle table</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="numero">Numéro de table</Label>
+            <Input
+              id="numero"
+              type="number"
+              value={numero}
+              onChange={(e) => setNumero(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="forme">Forme</Label>
+            <Select value={forme} onValueChange={(value: TableShape) => setForme(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ronde">Ronde</SelectItem>
+                <SelectItem value="carre">Carrée</SelectItem>
+                <SelectItem value="rectangulaire">Rectangulaire</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="nombrePersonnes">Nombre de personnes</Label>
+            <Input
+              id="nombrePersonnes"
+              type="number"
+              value={nombrePersonnes}
+              onChange={(e) => setNombrePersonnes(e.target.value)}
+              required
+            />
+          </div>
+          
+          <Button type="submit" className="w-full">Ajouter</Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default TableForm;
