@@ -45,6 +45,7 @@ const DraggableTable = ({ table, statut }: DraggableTableProps) => {
       fontWeight: 'bold',
       fontSize: '12px',
       transform: `rotate(${rotation}deg)`,
+      touchAction: 'none', // Empêche le comportement de scroll par défaut sur mobile
     };
 
     switch (forme) {
@@ -90,18 +91,38 @@ const DraggableTable = ({ table, statut }: DraggableTableProps) => {
     }
   };
 
+  // Fonction pour obtenir les coordonnées depuis un événement (souris ou tactile)
+  const getEventCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e) {
+      // Événement tactile
+      return {
+        clientX: e.touches[0]?.clientX || 0,
+        clientY: e.touches[0]?.clientY || 0
+      };
+    } else {
+      // Événement souris
+      return {
+        clientX: e.clientX,
+        clientY: e.clientY
+      };
+    }
+  };
+
+  // Gestionnaires pour les événements de souris
   const handleMouseDown = (e: React.MouseEvent) => {
+    const coords = getEventCoordinates(e);
     setIsDragging(true);
     setDragStart({
-      x: e.clientX - (table.position?.x || 0),
-      y: e.clientY - (table.position?.y || 0)
+      x: coords.clientX - (table.position?.x || 0),
+      y: coords.clientY - (table.position?.y || 0)
     });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging) {
-      const newX = e.clientX - dragStart.x;
-      const newY = e.clientY - dragStart.y;
+      const coords = getEventCoordinates(e);
+      const newX = coords.clientX - dragStart.x;
+      const newY = coords.clientY - dragStart.y;
       
       updateTable(table.id, {
         position: { x: Math.max(0, newX), y: Math.max(0, newY) }
@@ -110,6 +131,33 @@ const DraggableTable = ({ table, statut }: DraggableTableProps) => {
   };
 
   const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Gestionnaires pour les événements tactiles
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const coords = getEventCoordinates(e);
+    setIsDragging(true);
+    setDragStart({
+      x: coords.clientX - (table.position?.x || 0),
+      y: coords.clientY - (table.position?.y || 0)
+    });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isDragging) {
+      e.preventDefault(); // Empêche le scroll de la page
+      const coords = getEventCoordinates(e);
+      const newX = coords.clientX - dragStart.x;
+      const newY = coords.clientY - dragStart.y;
+      
+      updateTable(table.id, {
+        position: { x: Math.max(0, newX), y: Math.max(0, newY) }
+      });
+    }
+  };
+
+  const handleTouchEnd = () => {
     setIsDragging(false);
   };
 
@@ -137,6 +185,9 @@ const DraggableTable = ({ table, statut }: DraggableTableProps) => {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <div className="relative group">
         {getTableShape(table.forme, table.rotation)}
