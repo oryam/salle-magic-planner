@@ -1,26 +1,31 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, ArrowRight, Users, Calendar } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, ArrowRight, Users, Calendar, Edit, Trash2 } from 'lucide-react';
 import { useRestaurant } from '@/context/RestaurantContext';
 import ReservationForm from '@/components/ReservationForm';
 import TableIcon from '@/components/TableIcon';
-import { format, addDays, addMonths, addYears, startOfDay, startOfMonth, startOfYear } from 'date-fns';
+import { format, addDays, addMonths, addYears, addWeeks, startOfDay, startOfMonth, startOfYear, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-type PeriodType = 'jour' | 'mois' | 'annee';
+type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
 
 const Reservations = () => {
-  const { getTablesWithReservations } = useRestaurant();
+  const { getTablesWithReservations, updateReservation, deleteReservation } = useRestaurant();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [period, setPeriod] = useState<PeriodType>('jour');
+  const [selectedTable, setSelectedTable] = useState<any>(null);
+  const [editingReservation, setEditingReservation] = useState<any>(null);
 
   const getCurrentPeriodStart = () => {
     switch (period) {
       case 'jour': return startOfDay(currentDate);
+      case 'semaine': return startOfWeek(currentDate, { weekStartsOn: 1 });
       case 'mois': return startOfMonth(currentDate);
       case 'annee': return startOfYear(currentDate);
     }
@@ -31,6 +36,8 @@ const Reservations = () => {
       switch (period) {
         case 'jour':
           return direction === 'next' ? addDays(prev, 1) : addDays(prev, -1);
+        case 'semaine':
+          return direction === 'next' ? addWeeks(prev, 1) : addWeeks(prev, -1);
         case 'mois':
           return direction === 'next' ? addMonths(prev, 1) : addMonths(prev, -1);
         case 'annee':
@@ -43,6 +50,10 @@ const Reservations = () => {
     switch (period) {
       case 'jour':
         return format(currentDate, 'EEEE dd MMMM yyyy', { locale: fr });
+      case 'semaine':
+        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+        return `Semaine du ${format(weekStart, 'dd/MM', { locale: fr })} au ${format(weekEnd, 'dd/MM/yyyy', { locale: fr })}`;
       case 'mois':
         return format(currentDate, 'MMMM yyyy', { locale: fr });
       case 'annee':
@@ -77,6 +88,27 @@ const Reservations = () => {
     }
   };
 
+  const handleEditReservation = (reservation: any) => {
+    setEditingReservation(reservation);
+  };
+
+  const handleSaveReservation = () => {
+    if (editingReservation) {
+      updateReservation(editingReservation.id, {
+        date: new Date(editingReservation.date),
+        heure: editingReservation.heure,
+        nombrePersonnes: parseInt(editingReservation.nombrePersonnes),
+        nomClient: editingReservation.nomClient
+      });
+      setEditingReservation(null);
+    }
+  };
+
+  const handleDeleteReservation = (reservationId: string) => {
+    deleteReservation(reservationId);
+    setEditingReservation(null);
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto">
@@ -96,6 +128,7 @@ const Reservations = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="jour">Jour</SelectItem>
+                    <SelectItem value="semaine">Semaine</SelectItem>
                     <SelectItem value="mois">Mois</SelectItem>
                     <SelectItem value="annee">Année</SelectItem>
                   </SelectContent>
@@ -181,9 +214,41 @@ const Reservations = () => {
                   
                   {table.prochaineDateReservation && (
                     <div className="text-right">
-                      <p className="text-sm font-medium">
-                        {formatReservationDate(table.prochaineDateReservation)}
-                      </p>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button 
+                            className="text-sm font-medium hover:underline"
+                            onClick={() => setSelectedTable(table)}
+                          >
+                            {formatReservationDate(table.prochaineDateReservation)}
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Réservations - Table {table.numero}</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {table.reservations.map(reservation => (
+                              <div key={reservation.id} className="flex items-center justify-between p-3 border rounded">
+                                <div>
+                                  <p className="font-medium">{reservation.nomClient}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {formatReservationDate(reservation.date)} - {reservation.nombrePersonnes} personnes
+                                  </p>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Button size="sm" variant="outline" onClick={() => handleEditReservation(reservation)}>
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleDeleteReservation(reservation.id)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                       {table.reservations.length > 1 && (
                         <p className="text-xs text-muted-foreground">
                           +{table.reservations.length - 1} autres réservations
@@ -202,6 +267,58 @@ const Reservations = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Dialog d'édition de réservation */}
+        <Dialog open={!!editingReservation} onOpenChange={() => setEditingReservation(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Modifier la réservation</DialogTitle>
+            </DialogHeader>
+            {editingReservation && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="nomClient">Nom du client</Label>
+                  <Input
+                    id="nomClient"
+                    value={editingReservation.nomClient}
+                    onChange={(e) => setEditingReservation({...editingReservation, nomClient: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={format(new Date(editingReservation.date), 'yyyy-MM-dd')}
+                    onChange={(e) => setEditingReservation({...editingReservation, date: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="heure">Heure</Label>
+                  <Input
+                    id="heure"
+                    type="time"
+                    value={editingReservation.heure}
+                    onChange={(e) => setEditingReservation({...editingReservation, heure: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="nombrePersonnes">Nombre de personnes</Label>
+                  <Input
+                    id="nombrePersonnes"
+                    type="number"
+                    value={editingReservation.nombrePersonnes}
+                    onChange={(e) => setEditingReservation({...editingReservation, nombrePersonnes: e.target.value})}
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button onClick={handleSaveReservation}>Sauvegarder</Button>
+                  <Button variant="outline" onClick={() => setEditingReservation(null)}>Annuler</Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

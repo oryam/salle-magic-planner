@@ -1,18 +1,65 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, ArrowRight, Calendar } from 'lucide-react';
 import { useRestaurant } from '@/context/RestaurantContext';
 import DraggableTable from '@/components/DraggableTable';
 import TableIcon from '@/components/TableIcon';
 import { useState } from 'react';
+import { format, addDays, addMonths, addYears, addWeeks, startOfDay, startOfMonth, startOfYear, startOfWeek, endOfWeek } from 'date-fns';
+import { fr } from 'date-fns/locale';
+
+type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
 
 const Salle = () => {
   const { getTablesWithReservations, updateTable } = useRestaurant();
-  const tablesWithReservations = getTablesWithReservations();
-  const tablesInSidebar = tablesWithReservations.filter(table => !table.position);
-  const tablesOnFloor = tablesWithReservations.filter(table => table.position);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [period, setPeriod] = useState<PeriodType>('jour');
   const [draggedTable, setDraggedTable] = useState<string | null>(null);
 
-  // Gestionnaires pour les tables dans la sidebar
+  const getCurrentPeriodStart = () => {
+    switch (period) {
+      case 'jour': return startOfDay(currentDate);
+      case 'semaine': return startOfWeek(currentDate, { weekStartsOn: 1 });
+      case 'mois': return startOfMonth(currentDate);
+      case 'annee': return startOfYear(currentDate);
+    }
+  };
+
+  const navigatePeriod = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      switch (period) {
+        case 'jour':
+          return direction === 'next' ? addDays(prev, 1) : addDays(prev, -1);
+        case 'semaine':
+          return direction === 'next' ? addWeeks(prev, 1) : addWeeks(prev, -1);
+        case 'mois':
+          return direction === 'next' ? addMonths(prev, 1) : addMonths(prev, -1);
+        case 'annee':
+          return direction === 'next' ? addYears(prev, 1) : addYears(prev, -1);
+      }
+    });
+  };
+
+  const formatPeriodDisplay = () => {
+    switch (period) {
+      case 'jour':
+        return format(currentDate, 'EEEE dd MMMM yyyy', { locale: fr });
+      case 'semaine':
+        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+        return `Semaine du ${format(weekStart, 'dd/MM', { locale: fr })} au ${format(weekEnd, 'dd/MM/yyyy', { locale: fr })}`;
+      case 'mois':
+        return format(currentDate, 'MMMM yyyy', { locale: fr });
+      case 'annee':
+        return format(currentDate, 'yyyy', { locale: fr });
+    }
+  };
+
+  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart());
+  const tablesInSidebar = tablesWithReservations.filter(table => !table.position);
+  const tablesOnFloor = tablesWithReservations.filter(table => table.position);
+
   const handleSidebarDragStart = (e: React.DragEvent, tableId: string) => {
     setDraggedTable(tableId);
     e.dataTransfer.effectAllowed = 'move';
@@ -22,7 +69,6 @@ const Salle = () => {
     setDraggedTable(tableId);
   };
 
-  // Gestionnaires pour la zone de dépôt du plan de salle
   const handleFloorDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -66,8 +112,39 @@ const Salle = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Sélecteur de date */}
+      <div className="p-4 border-b">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-4">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <Select value={period} onValueChange={(value: PeriodType) => setPeriod(value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="jour">Jour</SelectItem>
+                  <SelectItem value="semaine">Semaine</SelectItem>
+                  <SelectItem value="mois">Mois</SelectItem>
+                  <SelectItem value="annee">Année</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" onClick={() => navigatePeriod('prev')}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <span className="font-medium min-w-48 text-center">{formatPeriodDisplay()}</span>
+                <Button variant="outline" size="sm" onClick={() => navigatePeriod('next')}>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex">
-        {/* Panneau latéral */}
         <div className="w-80 bg-card border-r border-border p-4">
           <Card>
             <CardHeader>
@@ -131,7 +208,6 @@ const Salle = () => {
           </Card>
         </div>
 
-        {/* Plan de salle */}
         <div className="flex-1 p-4">
           <Card className="h-full">
             <CardHeader>

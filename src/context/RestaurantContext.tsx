@@ -9,6 +9,8 @@ interface RestaurantContextType {
   updateTable: (id: string, table: Partial<Table>) => void;
   deleteTable: (id: string) => void;
   addReservation: (reservation: Omit<Reservation, 'id'>) => void;
+  updateReservation: (id: string, reservation: Partial<Reservation>) => void;
+  deleteReservation: (id: string) => void;
   getTablesWithReservations: (date?: Date) => TableWithReservations[];
   getTableStatus: (tableId: string, date: Date) => TableStatus;
 }
@@ -80,6 +82,16 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     setReservations(prev => [...prev, newReservation]);
   };
 
+  const updateReservation = (id: string, reservationData: Partial<Reservation>) => {
+    setReservations(prev => prev.map(res => 
+      res.id === id ? { ...res, ...reservationData } : res
+    ));
+  };
+
+  const deleteReservation = (id: string) => {
+    setReservations(prev => prev.filter(res => res.id !== id));
+  };
+
   const getTableStatus = (tableId: string, date: Date): TableStatus => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -129,6 +141,8 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       updateTable,
       deleteTable,
       addReservation,
+      updateReservation,
+      deleteReservation,
       getTablesWithReservations,
       getTableStatus
     }}>
