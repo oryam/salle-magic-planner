@@ -3,12 +3,66 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRestaurant } from '@/context/RestaurantContext';
 import DraggableTable from '@/components/DraggableTable';
 import TableIcon from '@/components/TableIcon';
+import { useState } from 'react';
 
 const Salle = () => {
-  const { getTablesWithReservations } = useRestaurant();
+  const { getTablesWithReservations, updateTable } = useRestaurant();
   const tablesWithReservations = getTablesWithReservations();
   const tablesInSidebar = tablesWithReservations.filter(table => !table.position);
   const tablesOnFloor = tablesWithReservations.filter(table => table.position);
+  const [draggedTable, setDraggedTable] = useState<string | null>(null);
+
+  // Gestionnaires pour les tables dans la sidebar
+  const handleSidebarDragStart = (e: React.DragEvent, tableId: string) => {
+    setDraggedTable(tableId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleSidebarTouchStart = (tableId: string) => {
+    setDraggedTable(tableId);
+  };
+
+  // Gestionnaires pour la zone de dépôt du plan de salle
+  const handleFloorDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleFloorDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (draggedTable) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      updateTable(draggedTable, {
+        position: { x: Math.max(0, x - 30), y: Math.max(0, y - 30) }
+      });
+      
+      setDraggedTable(null);
+    }
+  };
+
+  const handleFloorTouchMove = (e: React.TouchEvent) => {
+    if (draggedTable) {
+      e.preventDefault();
+    }
+  };
+
+  const handleFloorTouchEnd = (e: React.TouchEvent) => {
+    if (draggedTable) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const touch = e.changedTouches[0];
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      
+      updateTable(draggedTable, {
+        position: { x: Math.max(0, x - 30), y: Math.max(0, y - 30) }
+      });
+      
+      setDraggedTable(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -24,8 +78,10 @@ const Salle = () => {
                 {tablesInSidebar.map(table => (
                   <div
                     key={table.id}
-                    className="flex items-center justify-between p-3 bg-muted rounded-lg cursor-move"
+                    className="flex items-center justify-between p-3 bg-muted rounded-lg cursor-move select-none"
                     draggable
+                    onDragStart={(e) => handleSidebarDragStart(e, table.id)}
+                    onTouchStart={() => handleSidebarTouchStart(table.id)}
                   >
                     <div className="flex items-center space-x-3">
                       <TableIcon forme={table.forme} />
@@ -85,6 +141,10 @@ const Salle = () => {
               <div 
                 className="relative w-full h-96 bg-muted rounded-lg overflow-hidden"
                 style={{ minHeight: '600px' }}
+                onDragOver={handleFloorDragOver}
+                onDrop={handleFloorDrop}
+                onTouchMove={handleFloorTouchMove}
+                onTouchEnd={handleFloorTouchEnd}
               >
                 {tablesOnFloor.map(table => (
                   <DraggableTable
