@@ -229,6 +229,7 @@ const Salle = () => {
                     table={table}
                     statut={table.statut}
                     reservations={table.reservations}
+                    currentDate={getCurrentPeriodStart()}
                   />
                 ))}
                 

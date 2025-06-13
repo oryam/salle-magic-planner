@@ -13,21 +13,30 @@ interface DraggableTableProps {
   table: Table;
   statut: 'libre' | 'reservee' | 'attente';
   reservations?: any[];
+  currentDate?: Date;
 }
 
-const DraggableTable = ({ table, statut, reservations = [] }: DraggableTableProps) => {
+const DraggableTable = ({ table, statut, reservations = [], currentDate = new Date() }: DraggableTableProps) => {
   const { updateTable, getTableStatus } = useRestaurant();
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const [customColor, setCustomColor] = useState(table.couleur || '');
 
-  // Obtenir la première réservation pour aujourd'hui
-  const todayReservation = reservations.find(res => {
-    const resDate = new Date(res.date);
-    const today = new Date();
-    return resDate.toDateString() === today.toDateString();
-  });
+  // Obtenir les réservations pour la date courante
+  const getTodayReservations = () => {
+    const targetDate = new Date(currentDate);
+    targetDate.setHours(0, 0, 0, 0);
+    
+    return reservations.filter(res => {
+      const resDate = new Date(res.date);
+      resDate.setHours(0, 0, 0, 0);
+      return resDate.getTime() === targetDate.getTime();
+    });
+  };
+
+  const todayReservations = getTodayReservations();
+  const todayReservation = todayReservations[0]; // Première réservation du jour
 
   const getStatusColor = () => {
     if (table.couleur) return table.couleur;
@@ -261,12 +270,17 @@ const DraggableTable = ({ table, statut, reservations = [] }: DraggableTableProp
           {table.nombrePersonnes}p
         </div>
 
-        {/* Informations de réservation si la table est réservée */}
+        {/* Informations de réservation actualisées */}
         {statut === 'reservee' && todayReservation && (
           <div className="absolute -bottom-12 left-0 text-xs bg-white text-black px-1 py-0.5 rounded shadow-sm border max-w-20 text-center">
             <div className="font-semibold">{todayReservation.nombrePersonnes}p</div>
             {todayReservation.nomClient && (
               <div className="truncate">{todayReservation.nomClient}</div>
+            )}
+            {todayReservations.length > 1 && (
+              <div className="text-xs text-muted-foreground">
+                +{todayReservations.length - 1} autres
+              </div>
             )}
           </div>
         )}
