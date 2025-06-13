@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,11 +15,29 @@ interface TableFormProps {
 }
 
 const TableForm = ({ table, isEdit = false, onClose }: TableFormProps) => {
-  const { addTable, updateTable } = useRestaurant();
+  const { addTable, updateTable, tables } = useRestaurant();
   const [open, setOpen] = useState(false);
   const [numero, setNumero] = useState(table?.numero || '');
   const [forme, setForme] = useState<TableShape>(table?.forme || 'ronde');
   const [nombrePersonnes, setNombrePersonnes] = useState(table?.nombrePersonnes || '');
+
+  // Pré-remplir le numéro de table suivant lors de l'ouverture du dialog
+  useEffect(() => {
+    if (open && !isEdit) {
+      const existingNumbers = tables.map(t => t.numero).sort((a, b) => a - b);
+      let nextNumber = 1;
+      
+      // Trouver le premier numéro disponible
+      for (let i = 0; i < existingNumbers.length; i++) {
+        if (existingNumbers[i] !== nextNumber) {
+          break;
+        }
+        nextNumber++;
+      }
+      
+      setNumero(nextNumber.toString());
+    }
+  }, [open, isEdit, tables]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

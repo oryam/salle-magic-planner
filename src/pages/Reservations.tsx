@@ -68,10 +68,9 @@ const Reservations = () => {
   const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period);
   
   const stats = {
-    tablesLibres: tablesWithReservations.filter(t => t.statut === 'libre').length,
-    tablesReservees: tablesWithReservations.filter(t => t.statut === 'reservee').length,
+    tablesLibres: tablesWithReservations.filter(t => t.reservations.length === 0).length,
+    nombreReservations: tablesWithReservations.reduce((sum, table) => sum + table.reservations.length, 0),
     totalPersonnes: tablesWithReservations
-      .filter(t => t.reservations.length > 0)
       .reduce((sum, table) => sum + table.reservations.reduce((tableSum, res) => tableSum + res.nombrePersonnes, 0), 0)
   };
 
@@ -166,8 +165,8 @@ const Reservations = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Tables réservées</p>
-                  <p className="text-3xl font-bold text-blue-600">{stats.tablesReservees}</p>
+                  <p className="text-sm text-muted-foreground">Réservations</p>
+                  <p className="text-3xl font-bold text-blue-600">{stats.nombreReservations}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-blue-600" />
               </div>
