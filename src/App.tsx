@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RestaurantProvider } from "@/context/RestaurantContext";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import Navigation from "@/components/Navigation";
 import Configuration from "@/pages/Configuration";
 import Salle from "@/pages/Salle";
@@ -20,15 +22,20 @@ const App = () => (
       <Sonner />
       <RestaurantProvider>
         <BrowserRouter>
-          <div className="min-h-screen bg-background">
-            <Navigation />
-            <Routes>
-              <Route path="/" element={<Configuration />} />
-              <Route path="/salle" element={<Salle />} />
-              <Route path="/reservations" element={<Reservations />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+          <SidebarProvider>
+            <div className="min-h-screen flex w-full bg-background">
+              <AppSidebar />
+              <SidebarInset>
+                <Navigation />
+                <Routes>
+                  <Route path="/" element={<Configuration />} />
+                  <Route path="/salle" element={<Salle />} />
+                  <Route path="/reservations" element={<Reservations />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </SidebarInset>
+            </div>
+          </SidebarProvider>
         </BrowserRouter>
       </RestaurantProvider>
     </TooltipProvider>

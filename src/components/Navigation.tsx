@@ -2,15 +2,29 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Settings, Layout, Calendar } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 const Navigation = () => {
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   const navItems = [
     { path: '/', label: 'Configuration', icon: Settings },
     { path: '/salle', label: 'Ma salle', icon: Layout },
     { path: '/reservations', label: 'Réservations', icon: Calendar }
   ];
+
+  if (isMobile) {
+    return (
+      <nav className="bg-white border-b border-border px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold">Salle Magic Planner</h1>
+          <SidebarTrigger />
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="bg-white border-b border-border px-6 py-4">
