@@ -2,11 +2,12 @@
 import React from 'react';
 import TableIcon from './TableIcon';
 import { Label } from '@/components/ui/label';
+import { TableShape } from '@/types/restaurant'; // <-- Add this import
 
 interface Table {
   id: string;
   numero: number;
-  forme: string;
+  forme: TableShape; // <-- Fix type here
   nombrePersonnes: number;
 }
 
