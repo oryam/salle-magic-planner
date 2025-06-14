@@ -122,6 +122,7 @@ const ImportExport = () => {
     importSalles,
     importTables,
     importReservations,
+    resetAllData,
   } = useRestaurant();
 
   const salleInputRef = useRef<HTMLInputElement>(null);
@@ -176,6 +177,23 @@ const ImportExport = () => {
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-8">
       <h1 className="text-2xl font-bold mb-4">Import / Export (format CSV)</h1>
+      {/* Bouton Réinitialiser */}
+      <div className="flex justify-end mb-3">
+        <Button
+          variant="destructive"
+          onClick={() => {
+            if (
+              window.confirm(
+                "Voulez-vous vraiment effacer toutes les données et réinitialiser avec l'exemple initial ?"
+              )
+            ) {
+              resetAllData();
+            }
+          }}
+        >
+          Réinitialiser tout
+        </Button>
+      </div>
 
       {/* Salles */}
       <Card className="p-4 space-y-2">
@@ -281,4 +299,3 @@ const ImportExport = () => {
 };
 
 export default ImportExport;
-

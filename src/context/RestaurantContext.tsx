@@ -4,6 +4,7 @@ import {
   TableStatus, TableShape, Salle, SalleId 
 } from '@/types/restaurant';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import { toast } from "@/hooks/use-toast";
 
 interface RestaurantContextType {
   salles: Salle[];
@@ -22,6 +23,7 @@ interface RestaurantContextType {
   importSalles: (items: Salle[]) => void;
   importTables: (items: Table[]) => void;
   importReservations: (items: Reservation[]) => void;
+  resetAllData: () => void;
 }
 
 const RestaurantContext = createContext<RestaurantContextType | undefined>(undefined);
@@ -44,7 +46,7 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
   ];
   const [salles, setSalles] = useState<Salle[]>(defaultSalles);
 
-  // Ajouté un champ salleId à chaque table
+  // Tables par défaut
   const tableData: Table[] = [
     {
       id: '1',
@@ -76,9 +78,9 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
   const today = new Date();
   const lastDayOfMonth = endOfMonth(today);
 
-  const [tables, setTables] = useState<Table[]>(tableData);
+  const defaultTables = [...tableData];
 
-  const [reservations, setReservations] = useState<Reservation[]>([
+  const defaultReservations: Reservation[] = [
     {
       id: '1',
       tableId: '1',
@@ -102,7 +104,10 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       heure: '19:15',
       nombrePersonnes: 4,
     }
-  ]);
+  ];
+
+  const [tables, setTables] = useState<Table[]>(defaultTables);
+  const [reservations, setReservations] = useState<Reservation[]>(defaultReservations);
 
   // Fonctions d'import
   const importSalles = (newSalles: Salle[]) => {
@@ -233,6 +238,17 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       });
   };
 
+  // Nouvelle fonction pour remettre toutes les données à zéro
+  const resetAllData = () => {
+    setSalles([...defaultSalles]);
+    setTables([...defaultTables]);
+    setReservations([...defaultReservations]);
+    toast({
+      title: "Données réinitialisées",
+      description: "Les données ont été réinitialisées avec le jeu d'exemple.",
+    });
+  };
+
   return (
     <RestaurantContext.Provider value={{
       salles,
@@ -251,6 +267,7 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       importSalles,
       importTables,
       importReservations,
+      resetAllData, // <-- On expose la nouvelle fonction ici
     }}>
       {children}
     </RestaurantContext.Provider>
