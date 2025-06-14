@@ -1,6 +1,6 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, eachDayOfInterval, eachWeekOfInterval } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -13,15 +13,14 @@ interface ReservationCalendarViewProps {
   currentDate: Date;
 }
 
-/**
- * Affiche un calendrier simplifié en fonction de la période sélectionnée (jour, semaine, mois, année)
- * avec les réservations marquées dans les journées.
- */
 const ReservationCalendarView = ({
   tablesWithReservations,
   period,
   currentDate,
 }: ReservationCalendarViewProps) => {
+  // Pour basculer "simple" <-> "détail" sur chaque mois individuellement
+  const [detailedMonths, setDetailedMonths] = useState<{ [key: string]: boolean }>({});
+
   // Crée une carte des réservations groupées par (jour ou semaine...)
   const getDateRange = () => {
     if (period === "jour") {
@@ -77,6 +76,25 @@ const ReservationCalendarView = ({
     return date.getTime() < now.setHours(0, 0, 0, 0); // comparé à aujourd'hui 00:00
   };
 
+  // Permet de calculer l'agrégat d'un mois : nombre de réservations, nombre total de personnes
+  const getAggregateForMonth = (month: Date) => {
+    let reservationCount = 0;
+    let totalPersons = 0;
+    tablesWithReservations.forEach(table => {
+      table.reservations.forEach((res: any) => {
+        const resDate = new Date(res.date);
+        if (
+          resDate.getMonth() === month.getMonth() &&
+          resDate.getFullYear() === month.getFullYear()
+        ) {
+          reservationCount++;
+          totalPersons += res.nombrePersonnes || 0;
+        }
+      });
+    });
+    return { reservationCount, totalPersons };
+  };
+
   // Pour simplification : Vue Mois / Semaine / Jour : grille par jour ; Vue An : grille 12 mois
   return (
     <Card className="mb-6">
@@ -88,6 +106,9 @@ const ReservationCalendarView = ({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {dateRange.map((month: Date) => {
               const monthLabel = format(month, "MMMM yyyy", { locale: fr });
+              // Stock pour le mode de vue du mois courant (par défaut : simple)
+              const detailed = detailedMonths[monthLabel] ?? false;
+
               // Récupérer les réservations du mois courant
               const resForMonth: any[] = [];
               tablesWithReservations.forEach(table => {
@@ -104,25 +125,67 @@ const ReservationCalendarView = ({
               // TRI ici
               resForMonth.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+              const hasReservations = resForMonth.length > 0;
+              const { reservationCount, totalPersons } = getAggregateForMonth(month);
+
+              // Gestion du mode d'affichage simplifié / détaillé
               return (
-                <div key={monthLabel} className="bg-muted rounded-lg p-3">
-                  <div className="font-semibold mb-2 text-sm">{monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}</div>
-                  {resForMonth.length === 0 ? (
-                    <div className="text-xs text-muted-foreground">Aucune réservation</div>
+                <div
+                  key={monthLabel}
+                  className={`rounded-lg p-3 transition-all
+                    ${hasReservations ? "bg-muted" : "bg-muted/60"}`}
+                >
+                  <div className="font-semibold mb-2 text-sm flex items-center gap-2">
+                    {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}
+                    {hasReservations && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto underline px-2 py-0 text-xs"
+                        onClick={() =>
+                          setDetailedMonths(prev => ({
+                            ...prev,
+                            [monthLabel]: !detailed,
+                          }))
+                        }
+                      >
+                        {detailed ? "Simple" : "Détail"}
+                      </Button>
+                    )}
+                  </div>
+                  {/* Mode simple (agrégé) */}
+                  {!detailed ? (
+                    hasReservations ? (
+                      <div>
+                        <div className="text-xs font-medium">
+                          {reservationCount} réservation{reservationCount > 1 ? "s" : ""}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {totalPersons} personnes
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">Aucune réservation</div>
+                    )
                   ) : (
-                    <ul className="space-y-1">
-                      {resForMonth.map((res, idx) => {
-                        const resDateObj = new Date(res.date);
-                        return (
-                          <li
-                            key={idx}
-                            className={`text-xs ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
-                          >
-                            {format(resDateObj, "d MMM HH:mm", { locale: fr })} – Table {res.tableNum} – {res.nomClient}
-                          </li>
-                        );
-                      })}
-                    </ul>
+                    // Mode détaillé (liste complète)
+                    hasReservations ? (
+                      <ul className="space-y-1">
+                        {resForMonth.map((res, idx) => {
+                          const resDateObj = new Date(res.date);
+                          return (
+                            <li
+                              key={idx}
+                              className={`text-xs ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
+                            >
+                              {format(resDateObj, "d MMM HH:mm", { locale: fr })} – Table {res.tableNum} – {res.nomClient}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">Aucune réservation</div>
+                    )
                   )}
                 </div>
               );
@@ -132,16 +195,18 @@ const ReservationCalendarView = ({
           <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
             {dateRange.map((date: Date) => {
               const resForDay = getReservationsForDate(date);
+              const hasReservations = resForDay.length > 0;
               return (
                 <div
                   key={date.toISOString()}
-                  className="bg-muted rounded-lg p-2 flex flex-col min-h-[96px]"
+                  className={`rounded-lg p-2 flex flex-col min-h-[96px] transition-all
+                    ${hasReservations ? "bg-muted" : "bg-muted/60"}`}
                 >
                   <div className="font-semibold text-xs mb-1">
                     {format(date, period === "jour" ? "PPP" : "EEE d", { locale: fr })}
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    {resForDay.length === 0 ? (
+                    {!hasReservations ? (
                       <span className="text-xs text-muted-foreground">Libre</span>
                     ) : (
                       <ul className="space-y-1">
@@ -171,3 +236,4 @@ const ReservationCalendarView = ({
 };
 
 export default ReservationCalendarView;
+
