@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,8 @@ interface ReservationCalendarViewProps {
   tablesWithReservations: any[];
   period: PeriodType;
   currentDate: Date;
-  onReservationClick?: (reservation: any) => void; // <- ajout du callback
+  onReservationClick?: (reservation: any) => void;
+  onAddReservation?: (date: Date) => void;
 }
 import CalendarReservationItem from "./calendar/CalendarReservationItem";
 import CalendarMonthCell from "./calendar/CalendarMonthCell";
@@ -20,6 +22,7 @@ const ReservationCalendarView = ({
   period,
   currentDate,
   onReservationClick,
+  onAddReservation,
 }: ReservationCalendarViewProps) => {
   // Pour basculer "simple" <-> "détail" sur chaque mois individuellement
   const [detailedMonths, setDetailedMonths] = useState<{ [key: string]: boolean }>({});
@@ -144,6 +147,7 @@ const ReservationCalendarView = ({
                     }))
                   }
                   onReservationClick={onReservationClick}
+                  onAddReservation={() => onAddReservation && onAddReservation(month)}
                 />
               );
             })}
@@ -159,7 +163,10 @@ const ReservationCalendarView = ({
                   className={`rounded-lg p-2 flex flex-col min-h-[96px] transition-all
                     ${hasReservations ? "bg-muted" : "bg-muted/60"}`}
                 >
-                  <div className="font-semibold text-xs mb-1">
+                  <div
+                    className="font-semibold text-xs mb-1 cursor-pointer hover:underline"
+                    onClick={() => onAddReservation && onAddReservation(date)}
+                  >
                     {format(date, period === "jour" ? "PPP" : "EEE d", { locale: fr })}
                   </div>
                   <div className="flex-1 flex flex-col gap-1">

@@ -14,6 +14,7 @@ interface CalendarMonthCellProps {
   reservations: any[];
   onToggleDetail: () => void;
   onReservationClick?: (reservation: any) => void;
+  onAddReservation?: () => void;
 }
 
 const groupReservationsByDay = (reservations: any[]) => {
@@ -38,8 +39,9 @@ const CalendarMonthCell: React.FC<CalendarMonthCellProps> = ({
   reservations,
   onToggleDetail,
   onReservationClick,
+  onAddReservation,
 }) => {
-  // Couleur : distingue la présence de résa
+  // Couleur : distingue la présence de résa
   const bgClass = hasReservations
     ? "bg-blue-300/80 dark:bg-blue-600/50"
     : "bg-muted/95";
@@ -55,13 +57,18 @@ const CalendarMonthCell: React.FC<CalendarMonthCellProps> = ({
 
   return (
     <div className={`rounded-lg p-3 transition-all ${bgClass}`}>
-      <div className="font-semibold mb-2 text-sm flex items-center gap-2">
-        {label.charAt(0).toUpperCase() + label.slice(1)}
+      <div className="font-semibold mb-2 text-sm flex items-center justify-between gap-2">
+        <span
+          className="cursor-pointer hover:underline"
+          onClick={onAddReservation}
+        >
+          {label.charAt(0).toUpperCase() + label.slice(1)}
+        </span>
         {hasReservations && (
           <Button
             variant="ghost"
             size="sm"
-            className="ml-auto underline px-2 py-0 text-xs"
+            className="underline px-2 py-0 text-xs"
             onClick={onToggleDetail}
           >
             {detailed ? "Simple" : "Détail"}

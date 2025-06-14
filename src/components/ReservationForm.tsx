@@ -15,9 +15,16 @@ import ReservationDetailsForm from './ReservationDetailsForm';
 interface ReservationFormProps {
   currentDate?: Date;
   period?: string;
+  newReservationDate?: Date | null;
+  onDialogClose?: () => void;
 }
 
-const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: ReservationFormProps) => {
+const ReservationForm = ({
+  currentDate = new Date(),
+  period = 'jour',
+  newReservationDate,
+  onDialogClose,
+}: ReservationFormProps) => {
   const { tables, reservations, addReservation, getTableStatus } = useRestaurant();
   const [open, setOpen] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState('');
@@ -26,21 +33,28 @@ const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: Reservat
   const [nombrePersonnes, setNombrePersonnes] = useState('');
   const [nomClient, setNomClient] = useState('');
 
-  // Pré-remplir la date selon la période
+  // Ouvrir le dialogue si déclenché depuis le calendrier
+  useEffect(() => {
+    if (newReservationDate) {
+      setOpen(true);
+    }
+  }, [newReservationDate]);
+
+  // Pré-remplir la date
   useEffect(() => {
     if (open) {
       let defaultDate: Date;
-      
-      if (period === 'jour') {
+      if (newReservationDate) {
+        defaultDate = newReservationDate;
+      } else if (period === 'jour') {
         defaultDate = currentDate;
       } else {
         // Pour semaine, mois, année : aujourd'hui + 1
         defaultDate = addDays(new Date(), 1);
       }
-      
       setDate(format(defaultDate, 'yyyy-MM-dd'));
     }
-  }, [open, currentDate, period]);
+  }, [open, currentDate, period, newReservationDate]);
 
   // Pré-remplir le nombre de personnes selon la table sélectionnée
   useEffect(() => {
@@ -72,6 +86,24 @@ const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: Reservat
     });
   };
 
+  const resetForm = () => {
+    setSelectedTableId('');
+    setDate('');
+    setHeure('');
+    setNombrePersonnes('');
+    setNomClient('');
+  };
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      resetForm();
+      if (onDialogClose) {
+        onDialogClose();
+      }
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -90,16 +122,7 @@ const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: Reservat
       nomClient
     });
 
-    setOpen(false);
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setSelectedTableId('');
-    setDate('');
-    setHeure('');
-    setNombrePersonnes('');
-    setNomClient('');
+    handleOpenChange(false);
   };
 
   const formatDate = (date: Date) => {
@@ -125,7 +148,7 @@ const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: Reservat
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4 mr-0 sm:mr-2" />

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ const Reservations = () => {
   const [selectedTable, setSelectedTable] = useState<any>(null);
   const [editingReservation, setEditingReservation] = useState<any>(null);
   const [calendarView, setCalendarView] = useState(false);
+  const [newReservationDate, setNewReservationDate] = useState<Date | null>(null);
 
   const getCurrentPeriodStart = () => {
     switch (period) {
@@ -116,12 +118,25 @@ const Reservations = () => {
     setEditingReservation(reservation);
   };
 
+  const handleOpenReservationForm = (date: Date) => {
+    setNewReservationDate(date);
+  };
+
+  const handleCloseReservationForm = () => {
+    setNewReservationDate(null);
+  };
+
   return (
     <div className="min-h-screen bg-background p-2 sm:p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
           <h1 className="text-lg sm:text-3xl font-bold">Tableau de bord des réservations</h1>
-          <ReservationForm currentDate={currentDate} period={period} />
+          <ReservationForm
+            currentDate={currentDate}
+            period={period}
+            newReservationDate={newReservationDate}
+            onDialogClose={handleCloseReservationForm}
+          />
         </div>
 
         {/* Contrôles de période */}
@@ -212,6 +227,7 @@ const Reservations = () => {
             period={period}
             currentDate={currentDate}
             onReservationClick={handleReservationClick}
+            onAddReservation={handleOpenReservationForm}
           />
         ) : (
           <>
