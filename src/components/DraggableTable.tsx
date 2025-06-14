@@ -223,17 +223,14 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
           />
         );
       }
-    } else if (forme === 'carre' || forme === 'rectangulaire') {
+    } else if (forme === 'carre') {
       // Répartir sur les 4 côtés (même nombre de chaises par côté si possible)
-      const w = forme === 'carre' ? baseSize : baseSize * 1.5;
-      const h = forme === 'carre' ? baseSize : baseSize * 0.7;
+      const w = baseSize;
+      const h = baseSize;
       const chairsPerSide = [0, 0, 0, 0];
-      let reste = nombre;
-      // D'abord, assigner autant que possible équitablement
       for (let i = 0; i < 4; i++) {
         chairsPerSide[i] = Math.floor(nombre / 4);
       }
-      // Puis distribuer le reste
       for (let i = 0; i < nombre % 4; i++) {
         chairsPerSide[i]++;
       }
@@ -324,6 +321,165 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
             }}
           />
         );
+      }
+    } else if (forme === 'rectangulaire') {
+      // Répartition : 1 chaise sur chaque largeur, le reste sur les longueurs
+      const w = baseSize * 1.5;
+      const h = baseSize * 0.7;
+      const chairShortSideCount = 2; // 1 par largeur
+      const totalChairs = nombre;
+
+      if (totalChairs < 3) {
+        // Cas particulier : 0/1/2 chaises, on met sur les largeurs puis les longueurs
+        if (totalChairs === 1) {
+          // met une sur la largeur du dessus
+          chairs.push(
+            <div
+              key={`short-0`}
+              style={{
+                position: 'absolute',
+                left: (w - chairSize) / 2,
+                top: -chairSize - 4,
+                width: chairSize,
+                height: chairSize,
+                background: '#d1d5db',
+                border: '2px solid #374151',
+                borderRadius: '6px',
+                boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+                zIndex: 1,
+                pointerEvents: 'none'
+              }}
+            />
+          );
+        }
+        if (totalChairs === 2) {
+          // une sur chaque largeur
+          chairs.push(
+            <div
+              key={`short-0`}
+              style={{
+                position: 'absolute',
+                left: (w - chairSize) / 2,
+                top: -chairSize - 4,
+                width: chairSize,
+                height: chairSize,
+                background: '#d1d5db',
+                border: '2px solid #374151',
+                borderRadius: '6px',
+                boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+                zIndex: 1,
+                pointerEvents: 'none'
+              }}
+            />
+          );
+          chairs.push(
+            <div
+              key={`short-1`}
+              style={{
+                position: 'absolute',
+                left: (w - chairSize) / 2,
+                top: h + 4,
+                width: chairSize,
+                height: chairSize,
+                background: '#d1d5db',
+                border: '2px solid #374151',
+                borderRadius: '6px',
+                boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+                zIndex: 1,
+                pointerEvents: 'none'
+              }}
+            />
+          );
+        }
+      } else {
+        // 1 chaise par largeur (haut/bas), reste sur la longueur
+        const longSideChairs = totalChairs - chairShortSideCount;
+        const longSidePerSide = Math.floor(longSideChairs / 2);
+        const extra = longSideChairs % 2;
+
+        // -- Chaises sur le côté haut (largeur 1)
+        chairs.push(
+          <div
+            key="short-top"
+            style={{
+              position: 'absolute',
+              left: (w - chairSize) / 2,
+              top: -chairSize - 4,
+              width: chairSize,
+              height: chairSize,
+              background: '#d1d5db',
+              border: '2px solid #374151',
+              borderRadius: '6px',
+              boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+              zIndex: 1,
+              pointerEvents: 'none'
+            }}
+          />
+        );
+        // -- Chaises sur le côté bas (largeur 2)
+        chairs.push(
+          <div
+            key="short-bottom"
+            style={{
+              position: 'absolute',
+              left: (w - chairSize) / 2,
+              top: h + 4,
+              width: chairSize,
+              height: chairSize,
+              background: '#d1d5db',
+              border: '2px solid #374151',
+              borderRadius: '6px',
+              boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+              zIndex: 1,
+              pointerEvents: 'none'
+            }}
+          />
+        );
+        // -- Répartir sur les longueurs (gauche et droite)
+        // Gauche
+        for (let i = 0; i < longSidePerSide; i++) {
+          const y = ((h - chairSize) / (longSidePerSide + (extra > 0 && i === 0 ? 1 : 0) + 1)) * (i + 1);
+          chairs.push(
+            <div
+              key={`long-left-${i}`}
+              style={{
+                position: 'absolute',
+                left: -chairSize - 4,
+                top: y,
+                width: chairSize,
+                height: chairSize,
+                background: '#d1d5db',
+                border: '2px solid #374151',
+                borderRadius: '6px',
+                boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+                zIndex: 1,
+                pointerEvents: 'none'
+              }}
+            />
+          );
+        }
+        // Droite
+        for (let i = 0; i < longSidePerSide + extra; i++) {
+          const y = ((h - chairSize) / (longSidePerSide + extra + 1)) * (i + 1);
+          chairs.push(
+            <div
+              key={`long-right-${i}`}
+              style={{
+                position: 'absolute',
+                left: w + 4,
+                top: y,
+                width: chairSize,
+                height: chairSize,
+                background: '#d1d5db',
+                border: '2px solid #374151',
+                borderRadius: '6px',
+                boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+                zIndex: 1,
+                pointerEvents: 'none'
+              }}
+            />
+          );
+        }
       }
     }
     return chairs;
