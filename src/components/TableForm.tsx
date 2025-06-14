@@ -13,9 +13,10 @@ interface TableFormProps {
   table?: Table;
   isEdit?: boolean;
   onClose?: () => void;
+  salleId: string; // <--- ADD THIS PROP
 }
 
-const TableForm = ({ table, isEdit = false, onClose }: TableFormProps) => {
+const TableForm = ({ table, isEdit = false, onClose, salleId }: TableFormProps) => {
   const { addTable, updateTable, tables } = useRestaurant();
   const [open, setOpen] = useState(false);
   const [numero, setNumero] = useState(table?.numero || '');
@@ -25,7 +26,7 @@ const TableForm = ({ table, isEdit = false, onClose }: TableFormProps) => {
   // Pré-remplir le numéro de table suivant lors de l'ouverture du dialog
   useEffect(() => {
     if (open && !isEdit) {
-      const existingNumbers = tables.map(t => t.numero).sort((a, b) => a - b);
+      const existingNumbers = tables.filter(t => t.salleId === salleId).map(t => t.numero).sort((a, b) => a - b);
       let nextNumber = 1;
       
       // Trouver le premier numéro disponible
@@ -38,15 +39,17 @@ const TableForm = ({ table, isEdit = false, onClose }: TableFormProps) => {
       
       setNumero(nextNumber.toString());
     }
-  }, [open, isEdit, tables]);
+  }, [open, isEdit, tables, salleId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Always use salleId from props
     const tableData = {
       numero: Number(numero),
       forme,
       nombrePersonnes: Number(nombrePersonnes),
+      salleId,
       ...(table && { position: table.position, rotation: table.rotation, couleur: table.couleur })
     };
 
@@ -181,4 +184,3 @@ const TableForm = ({ table, isEdit = false, onClose }: TableFormProps) => {
 };
 
 export default TableForm;
-
