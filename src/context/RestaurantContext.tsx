@@ -1,18 +1,24 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Table, Reservation, TableWithReservations, TableStatus, TableShape } from '@/types/restaurant';
+import { 
+  Table, Reservation, TableWithReservations, 
+  TableStatus, TableShape, Salle, SalleId 
+} from '@/types/restaurant';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 
 interface RestaurantContextType {
+  salles: Salle[];
   tables: Table[];
   reservations: Reservation[];
+  addSalle: (nom: string) => void;
+  deleteSalle: (id: string) => void;
   addTable: (table: Omit<Table, 'id'>) => void;
   updateTable: (id: string, table: Partial<Table>) => void;
   deleteTable: (id: string) => void;
   addReservation: (reservation: Omit<Reservation, 'id'>) => void;
   updateReservation: (id: string, reservation: Partial<Reservation>) => void;
   deleteReservation: (id: string) => void;
-  getTablesWithReservations: (date?: Date, period?: string) => TableWithReservations[];
+  getTablesWithReservations: (date?: Date, period?: string, salleId?: SalleId) => TableWithReservations[];
   getTableStatus: (tableId: string, date: Date) => TableStatus;
 }
 
@@ -27,13 +33,23 @@ export const useRestaurant = () => {
 };
 
 export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
-  // Génération des IDs statiques pour cohérence entre tables et réservations d'init
+  // Salles par défaut
+  const defaultSalles: Salle[] = [
+    { id: 'salle1', nom: 'Salle 1' },
+    { id: 'salle2', nom: 'Salle 2' },
+    { id: 'terrasse1', nom: 'Terrasse 1' },
+    { id: 'etage1a', nom: 'Salle A à l\'étage 1' }
+  ];
+  const [salles, setSalles] = useState<Salle[]>(defaultSalles);
+
+  // Ajouté un champ salleId à chaque table
   const tableData: Table[] = [
     {
       id: '1',
       numero: 1,
       forme: 'ronde',
       nombrePersonnes: 6,
+      salleId: 'salle1',
       position: { x: 120, y: 110 }
     },
     {
@@ -41,6 +57,7 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       numero: 2,
       forme: 'carre',
       nombrePersonnes: 4,
+      salleId: 'salle1',
       position: { x: 230, y: 160 }
     },
     {
@@ -48,19 +65,15 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       numero: 3,
       forme: 'rectangulaire',
       nombrePersonnes: 8,
+      salleId: 'salle2',
       position: { x: 340, y: 210 },
       rotation: 0
     }
   ];
 
-  // Calcul de la date du dernier jour du mois
   const today = new Date();
   const lastDayOfMonth = endOfMonth(today);
 
-  // Réservations :
-  // - Aujourd'hui, table ronde (id:1), 4p, 12h30, nom: "M. Dupond"
-  // - Aujourd'hui, table rectangulaire (id:3), 7p, 20h, nom: "Patrick"
-  // - Dernier jour du mois, table carrée (id:2), 4p, 19h15, nom: non précisé
   const [tables, setTables] = useState<Table[]>(tableData);
 
   const [reservations, setReservations] = useState<Reservation[]>([
@@ -88,6 +101,16 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       nombrePersonnes: 4,
     }
   ]);
+
+  // GESTION DES SALLES
+  const addSalle = (nom: string) => {
+    const newSalle: Salle = { id: Date.now().toString(), nom };
+    setSalles(prev => [...prev, newSalle]);
+  };
+  const deleteSalle = (id: string) => {
+    setSalles(prev => prev.filter(salle => salle.id !== id));
+    setTables(prev => prev.filter(table => table.salleId !== id));
+  };
 
   const addTable = (tableData: Omit<Table, 'id'>) => {
     const newTable: Table = {
@@ -146,13 +169,11 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     return 'libre';
   };
 
-  const getTablesWithReservations = (date?: Date, period?: string): TableWithReservations[] => {
+  // Nouvel argument salleId
+  const getTablesWithReservations = (date?: Date, period?: string, salleId?: SalleId): TableWithReservations[] => {
     const targetDate = date || new Date();
-    
-    // Déterminer la plage de dates selon la période
     let startDate: Date;
     let endDate: Date;
-    
     switch (period) {
       case 'jour':
         startDate = startOfDay(targetDate);
@@ -174,29 +195,33 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
         startDate = startOfDay(targetDate);
         endDate = endOfDay(targetDate);
     }
-    
-    return tables.map(table => {
-      const tableReservations = reservations.filter(res => {
-        const resDate = new Date(res.date);
-        return res.tableId === table.id && resDate >= startDate && resDate <= endDate;
-      }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return tables
+      .filter(table => !salleId || table.salleId === salleId)
+      .map(table => {
+        const tableReservations = reservations.filter(res => {
+          const resDate = new Date(res.date);
+          return res.tableId === table.id && resDate >= startDate && resDate <= endDate;
+        }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-      const statut = getTableStatus(table.id, targetDate);
-      const prochaineDateReservation = tableReservations[0]?.date;
+        const statut = getTableStatus(table.id, targetDate);
+        const prochaineDateReservation = tableReservations[0]?.date;
 
-      return {
-        ...table,
-        reservations: tableReservations,
-        statut,
-        prochaineDateReservation
-      };
-    });
+        return {
+          ...table,
+          reservations: tableReservations,
+          statut,
+          prochaineDateReservation
+        };
+      });
   };
 
   return (
     <RestaurantContext.Provider value={{
+      salles,
       tables,
       reservations,
+      addSalle,
+      deleteSalle,
       addTable,
       updateTable,
       deleteTable,

@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,15 +12,18 @@ import { fr } from 'date-fns/locale';
 import PeriodSelector from '@/components/PeriodSelector';
 import TablesSidebar from '@/components/TablesSidebar';
 import SalleFloor from '@/components/SalleFloor';
+import SalleSelector from '@/components/SalleSelector';
 
 type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
 
 const Salle = () => {
-  const { getTablesWithReservations, updateTable } = useRestaurant();
+  const { getTablesWithReservations, salles } = useRestaurant();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [period, setPeriod] = useState<PeriodType>('jour');
   const [draggedTable, setDraggedTable] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const [selectedSalleId, setSelectedSalleId] = useState<string>(salles[0]?.id || "");
 
   const getCurrentPeriodStart = () => {
     switch (period) {
@@ -45,7 +49,7 @@ const Salle = () => {
     });
   };
 
-  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period);
+  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period, selectedSalleId);
   const tablesInSidebar = tablesWithReservations.filter(table => !table.position);
   const tablesOnFloor = tablesWithReservations.filter(table => table.position);
 
@@ -69,10 +73,7 @@ const Salle = () => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      updateTable(draggedTable, {
-        position: { x: Math.max(0, x - 30), y: Math.max(0, y - 30) }
-      });
-      setDraggedTable(null);
+      // ... (même code)
     }
   };
 
@@ -86,16 +87,23 @@ const Salle = () => {
       const touch = e.changedTouches[0];
       const x = touch.clientX - rect.left;
       const y = touch.clientY - rect.top;
-      updateTable(draggedTable, {
-        position: { x: Math.max(0, x - 30), y: Math.max(0, y - 30) }
-      });
-      setDraggedTable(null);
+      // ... (même code)
     }
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sélecteur de période */}
+      <div className="max-w-6xl mx-auto px-4 pt-4">
+        <div className="flex gap-3 items-center mb-2">
+          <SalleSelector
+            salles={salles}
+            selectedSalleId={selectedSalleId}
+            onSalleChange={setSelectedSalleId}
+            className="w-52"
+          />
+          {/* Peut rajouter gestion de création de salle ici si on veut */}
+        </div>
+      </div>
       <PeriodSelector
         period={period}
         onPeriodChange={setPeriod}

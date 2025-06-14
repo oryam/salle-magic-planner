@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,16 +16,18 @@ interface ReservationFormProps {
   currentDate?: Date;
   period?: string;
   newReservationDate?: Date | null;
-  newReservationTableId?: string | null; // Ajout de la prop
+  newReservationTableId?: string | null;
   onDialogClose?: () => void;
+  salleId?: string;
 }
 
 const ReservationForm = ({
   currentDate = new Date(),
   period = 'jour',
   newReservationDate,
-  newReservationTableId, // récupération
+  newReservationTableId,
   onDialogClose,
+  salleId,
 }: ReservationFormProps) => {
   const { tables, reservations, addReservation, getTableStatus } = useRestaurant();
   const [open, setOpen] = useState(false);
@@ -157,6 +158,9 @@ const ReservationForm = ({
     }
   };
 
+  // Restriction des tables à celles de la salle si salleId fourni
+  const tablesFiltered = salleId ? tables.filter(t => t.salleId === salleId) : tables;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -172,7 +176,7 @@ const ReservationForm = ({
         
         <div className="space-y-6">
           <TableSelector
-            tables={tables}
+            tables={tablesFiltered}
             date={date}
             selectedTableId={selectedTableId}
             getTableStatusForDate={getTableStatusForDate}

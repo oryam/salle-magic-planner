@@ -14,11 +14,12 @@ import { format, addDays, addMonths, addYears, addWeeks, startOfDay, startOfMont
 import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon } from 'lucide-react'; // s'assure d'importer le bon icône
 import ReservationCalendarView from '@/components/ReservationCalendarView';
+import SalleSelector from '@/components/SalleSelector';
 
 type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
 
 const Reservations = () => {
-  const { getTablesWithReservations, updateReservation, deleteReservation } = useRestaurant();
+  const { getTablesWithReservations, salles, updateReservation, deleteReservation } = useRestaurant();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [period, setPeriod] = useState<PeriodType>('jour');
   const [selectedTable, setSelectedTable] = useState<any>(null);
@@ -26,6 +27,8 @@ const Reservations = () => {
   const [calendarView, setCalendarView] = useState(false);
   const [newReservationDate, setNewReservationDate] = useState<Date | null>(null);
   const [newReservationTableId, setNewReservationTableId] = useState<string | null>(null);
+
+  const [selectedSalleId, setSelectedSalleId] = useState<string>(salles[0]?.id || "");
 
   const getCurrentPeriodStart = () => {
     switch (period) {
@@ -70,7 +73,7 @@ const Reservations = () => {
     return format(date, 'EEE dd/MM HH:mm', { locale: fr });
   };
 
-  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period);
+  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period, selectedSalleId);
   
   const stats = {
     tablesLibres: tablesWithReservations.filter(t => t.reservations.length === 0).length,
@@ -144,6 +147,15 @@ const Reservations = () => {
             newReservationDate={newReservationDate}
             newReservationTableId={newReservationTableId}
             onDialogClose={handleCloseReservationForm}
+            salleId={selectedSalleId}
+          />
+        </div>
+        <div className="flex items-center gap-3 mb-4">
+          <SalleSelector
+            salles={salles}
+            selectedSalleId={selectedSalleId}
+            onSalleChange={setSelectedSalleId}
+            className="w-56"
           />
         </div>
 
