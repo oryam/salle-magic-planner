@@ -130,7 +130,7 @@ const ReservationCalendarView = ({
               // Couleur de fond contrastée :
               // - vive si réservation, très claire sinon
               const bgClass = hasReservations
-                ? "bg-primary/60"
+                ? "bg-blue-300/80 dark:bg-blue-600/50"
                 : "bg-muted/95";
 
               // Gestion du mode d'affichage simplifié / détaillé
