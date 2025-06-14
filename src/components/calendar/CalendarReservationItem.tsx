@@ -1,4 +1,3 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -28,9 +27,9 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
     ? `${reservation.nombrePersonnes}p`
     : "";
 
-  // Jour abrégé en 2 lettres pour vue Année
+  // Jour abrégé en 2 lettres pour vue Année sans le point final (ex : "lu" au lieu de "lu.")
   const shortDay =
-    showDate ? `${format(resDateObj, "EE", { locale: fr })}. ` : "";
+    showDate ? `${format(resDateObj, "EE", { locale: fr })} ` : "";
 
   return (
     <li
@@ -47,4 +46,3 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
 };
 
 export default CalendarReservationItem;
-
