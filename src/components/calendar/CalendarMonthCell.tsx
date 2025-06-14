@@ -1,5 +1,7 @@
 
 import React from "react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import CalendarReservationItem from "./CalendarReservationItem";
 
@@ -13,6 +15,19 @@ interface CalendarMonthCellProps {
   onToggleDetail: () => void;
   onReservationClick?: (reservation: any) => void;
 }
+
+const groupReservationsByDay = (reservations: any[]) => {
+  const grouped: { [date: string]: any[] } = {};
+  reservations.forEach((res) => {
+    const d = new Date(res.date);
+    const dateKey = format(d, "yyyy-MM-dd"); // clé au format '2025-06-14'
+    if (!grouped[dateKey]) {
+      grouped[dateKey] = [];
+    }
+    grouped[dateKey].push(res);
+  });
+  return grouped;
+};
 
 const CalendarMonthCell: React.FC<CalendarMonthCellProps> = ({
   label,
@@ -28,6 +43,15 @@ const CalendarMonthCell: React.FC<CalendarMonthCellProps> = ({
   const bgClass = hasReservations
     ? "bg-blue-300/80 dark:bg-blue-600/50"
     : "bg-muted/95";
+
+  // Grouper par jour si détaillé
+  let groupedByDay: { [date: string]: any[] } = {};
+  let orderedDays: string[] = [];
+  if (detailed && hasReservations) {
+    groupedByDay = groupReservationsByDay(reservations);
+    // Pour garder l'ordre, trions les jours
+    orderedDays = Object.keys(groupedByDay).sort();
+  }
 
   return (
     <div className={`rounded-lg p-3 transition-all ${bgClass}`}>
@@ -59,18 +83,27 @@ const CalendarMonthCell: React.FC<CalendarMonthCellProps> = ({
         )
       ) : (
         hasReservations ? (
-          <ul className="space-y-1">
-            {reservations.map((res, idx) => (
-              <CalendarReservationItem
-                key={idx}
-                reservation={res}
-                tableNum={res.tableNum}
-                showDate={true}
-                isPast={new Date(res.date) < new Date()}
-                onClick={onReservationClick}
-              />
+          <div>
+            {orderedDays.map((dateKey) => (
+              <div key={dateKey} className="mb-2">
+                <div className="text-xs text-muted-foreground font-semibold mb-1">
+                  {format(new Date(dateKey), "EEEE dd MMMM yyyy", { locale: fr })}
+                </div>
+                <ul className="space-y-1">
+                  {groupedByDay[dateKey].map((res, idx) => (
+                    <CalendarReservationItem
+                      key={idx}
+                      reservation={res}
+                      tableNum={res.tableNum}
+                      showDate={true}
+                      isPast={new Date(res.date) < new Date()}
+                      onClick={onReservationClick}
+                    />
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
           <div className="text-xs text-muted-foreground">Aucune réservation</div>
         )
@@ -80,4 +113,3 @@ const CalendarMonthCell: React.FC<CalendarMonthCellProps> = ({
 };
 
 export default CalendarMonthCell;
-
