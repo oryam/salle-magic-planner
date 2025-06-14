@@ -72,10 +72,17 @@ const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: Reservat
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Combine la date (yyyy-MM-dd) et l'heure (HH:mm) en un objet Date complet
+    let finalDate = new Date(date);
+    if (heure) {
+      const [hh, mm] = heure.split(':');
+      finalDate.setHours(Number(hh), Number(mm), 0, 0);
+    }
+
     addReservation({
       tableId: selectedTableId,
-      date: new Date(date),
+      date: finalDate,
       heure,
       nombrePersonnes: Number(nombrePersonnes),
       nomClient
@@ -218,5 +225,4 @@ const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: Reservat
     </Dialog>
   );
 };
-
 export default ReservationForm;
