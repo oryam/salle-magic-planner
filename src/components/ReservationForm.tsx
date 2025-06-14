@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -120,8 +119,8 @@ const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: Reservat
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Réserver une table
+          <Plus className="h-4 w-4 mr-0 sm:mr-2" />
+          <span className="hidden sm:inline">Réserver une table</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">

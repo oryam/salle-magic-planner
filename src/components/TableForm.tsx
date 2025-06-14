@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -127,8 +128,8 @@ const TableForm = ({ table, isEdit = false, onClose }: TableFormProps) => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter une table
+          <Plus className="h-4 w-4 mr-0 sm:mr-2" />
+          <span className="hidden sm:inline">Ajouter une table</span>
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -180,3 +181,4 @@ const TableForm = ({ table, isEdit = false, onClose }: TableFormProps) => {
 };
 
 export default TableForm;
+
