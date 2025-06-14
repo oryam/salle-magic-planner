@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,8 @@ import ReservationForm from '@/components/ReservationForm';
 import TableIcon from '@/components/TableIcon';
 import { format, addDays, addMonths, addYears, addWeeks, startOfDay, startOfMonth, startOfYear, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Calendar as CalendarIcon } from 'lucide-react'; // s'assure d'importer le bon icône
+import ReservationCalendarView from '@/components/ReservationCalendarView';
 
 type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
 
@@ -22,6 +23,7 @@ const Reservations = () => {
   const [period, setPeriod] = useState<PeriodType>('jour');
   const [selectedTable, setSelectedTable] = useState<any>(null);
   const [editingReservation, setEditingReservation] = useState<any>(null);
+  const [calendarView, setCalendarView] = useState(false);
 
   const getCurrentPeriodStart = () => {
     switch (period) {
@@ -143,6 +145,17 @@ const Reservations = () => {
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
+                {/* Nouveau bouton "vue calendrier" */}
+                <Button
+                  type="button"
+                  variant={calendarView ? "default" : "outline"}
+                  size="icon"
+                  aria-label="Vue calendrier"
+                  className="ml-2"
+                  onClick={() => setCalendarView(v => !v)}
+                >
+                  <CalendarIcon className="h-5 w-5" />
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -187,88 +200,99 @@ const Reservations = () => {
           </Card>
         </div>
 
-        {/* Liste des tables */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base sm:text-lg">État des tables</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 sm:space-y-3">
-              {tablesWithReservations.map(table => (
-                <div
-                  key={table.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 gap-2 sm:gap-0"
-                >
-                  <div className="flex items-center space-x-2 sm:space-x-4">
-                    <TableIcon forme={table.forme} className="h-5 w-5 sm:h-6 sm:w-6" />
-                    <div>
-                      <span className="font-medium text-sm sm:text-base">Table {table.numero}</span>
-                      <div className="flex items-center space-x-1 sm:space-x-2 mt-1">
-                        <span className="text-xs sm:text-sm text-muted-foreground">
-                          {table.nombrePersonnes} personnes
-                        </span>
-                        {getStatusBadge(table.statut)}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {table.prochaineDateReservation && (
-                    <div className="text-right">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <button 
-                            className="text-xs sm:text-sm font-medium hover:underline"
-                            onClick={() => setSelectedTable(table)}
-                          >
-                            {formatReservationDate(table.prochaineDateReservation)}
-                          </button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle className="text-base sm:text-lg">
-                              Réservations - Table {table.numero}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-3 max-h-96 overflow-y-auto">
-                            {table.reservations.map(reservation => (
-                              <div key={reservation.id} className="flex items-center justify-between p-2 sm:p-3 border rounded">
-                                <div>
-                                  <p className="font-medium text-sm sm:text-base">{reservation.nomClient}</p>
-                                  <p className="text-xs sm:text-sm text-muted-foreground">
-                                    {formatReservationDate(reservation.date)} - {reservation.nombrePersonnes} personnes
-                                  </p>
-                                </div>
-                                <div className="flex space-x-1 sm:space-x-2">
-                                  <Button size="sm" variant="outline" className="p-2 sm:p-3" onClick={() => handleEditReservation(reservation)}>
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button size="sm" variant="outline" className="p-2 sm:p-3" onClick={() => handleDeleteReservation(reservation.id)}>
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
+        {/* Vue Liste ou Vue Calendrier */}
+        {calendarView ? (
+          <ReservationCalendarView
+            tablesWithReservations={tablesWithReservations}
+            period={period}
+            currentDate={currentDate}
+          />
+        ) : (
+          <>
+            {/* Liste des tables */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base sm:text-lg">État des tables</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 sm:space-y-3">
+                  {tablesWithReservations.map(table => (
+                    <div
+                      key={table.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 gap-2 sm:gap-0"
+                    >
+                      <div className="flex items-center space-x-2 sm:space-x-4">
+                        <TableIcon forme={table.forme} className="h-5 w-5 sm:h-6 sm:w-6" />
+                        <div>
+                          <span className="font-medium text-sm sm:text-base">Table {table.numero}</span>
+                          <div className="flex items-center space-x-1 sm:space-x-2 mt-1">
+                            <span className="text-xs sm:text-sm text-muted-foreground">
+                              {table.nombrePersonnes} personnes
+                            </span>
+                            {getStatusBadge(table.statut)}
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                      {table.reservations.length > 1 && (
-                        <p className="text-xs text-muted-foreground">
-                          +{table.reservations.length - 1} autres réservations
-                        </p>
+                        </div>
+                      </div>
+                      
+                      {table.prochaineDateReservation && (
+                        <div className="text-right">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button 
+                                className="text-xs sm:text-sm font-medium hover:underline"
+                                onClick={() => setSelectedTable(table)}
+                              >
+                                {formatReservationDate(table.prochaineDateReservation)}
+                              </button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle className="text-base sm:text-lg">
+                                  Réservations - Table {table.numero}
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-3 max-h-96 overflow-y-auto">
+                                {table.reservations.map(reservation => (
+                                  <div key={reservation.id} className="flex items-center justify-between p-2 sm:p-3 border rounded">
+                                    <div>
+                                      <p className="font-medium text-sm sm:text-base">{reservation.nomClient}</p>
+                                      <p className="text-xs sm:text-sm text-muted-foreground">
+                                        {formatReservationDate(reservation.date)} - {reservation.nombrePersonnes} personnes
+                                      </p>
+                                    </div>
+                                    <div className="flex space-x-1 sm:space-x-2">
+                                      <Button size="sm" variant="outline" className="p-2 sm:p-3" onClick={() => handleEditReservation(reservation)}>
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button size="sm" variant="outline" className="p-2 sm:p-3" onClick={() => handleDeleteReservation(reservation.id)}>
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                          {table.reservations.length > 1 && (
+                            <p className="text-xs text-muted-foreground">
+                              +{table.reservations.length - 1} autres réservations
+                            </p>
+                          )}
+                        </div>
                       )}
+                    </div>
+                  ))}
+
+                  {tablesWithReservations.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground text-xs sm:text-base">Aucune table configurée</p>
                     </div>
                   )}
                 </div>
-              ))}
-
-              {tablesWithReservations.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground text-xs sm:text-base">Aucune table configurée</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         {/* Dialog d'édition de réservation */}
         <Dialog open={!!editingReservation} onOpenChange={() => setEditingReservation(null)}>
@@ -327,4 +351,3 @@ const Reservations = () => {
 };
 
 export default Reservations;
-
