@@ -152,6 +152,12 @@ const Reservations = () => {
     setNewReservationTableId(null);
   };
 
+  // Fonction pour retrouver le nom de la salle à partir de l'id
+  const getSalleName = (salleId: string) => {
+    const salle = salles.find(s => s.id === salleId);
+    return salle ? salle.nom : "";
+  };
+
   return (
     <div className="min-h-screen bg-background p-2 sm:p-6">
       <div className="max-w-6xl mx-auto">
@@ -297,14 +303,22 @@ const Reservations = () => {
                     >
                       <div className="flex items-center space-x-2 sm:space-x-4">
                         <TableIcon forme={table.forme} className="h-5 w-5 sm:h-6 sm:w-6" />
-                        <button
-                          type="button"
-                          className="font-medium text-sm sm:text-base text-primary hover:underline focus:outline-none"
-                          onClick={() => handleOpenReservationFormForTable(table.id)}
-                          aria-label={`Ajouter une réservation sur table ${table.numero}`}
-                        >
-                          Table {table.numero}
-                        </button>
+                        <div className="flex flex-col">
+                          <button
+                            type="button"
+                            className="font-medium text-sm sm:text-base text-primary hover:underline focus:outline-none text-left"
+                            onClick={() => handleOpenReservationFormForTable(table.id)}
+                            aria-label={`Ajouter une réservation sur table ${table.numero}`}
+                          >
+                            Table {table.numero}
+                          </button>
+                          {/* Affiche le nom de la salle si le mode "Tout voir" est activé */}
+                          {selectedSalleId === ALL_SALLES_VALUE && (
+                            <span className="text-xs text-muted-foreground">
+                              {getSalleName(table.salleId)}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center space-x-1 sm:space-x-2 mt-1">
                           <span className="text-xs sm:text-sm text-muted-foreground">{table.nombrePersonnes} personnes</span>
                           {getStatusBadge(table.statut)}
@@ -326,6 +340,12 @@ const Reservations = () => {
                               <DialogHeader>
                                 <DialogTitle className="text-base sm:text-lg">
                                   Réservations - Table {table.numero}
+                                  {/* Affiche le nom de la salle dans le titre si "Tout voir" */}
+                                  {selectedSalleId === ALL_SALLES_VALUE && (
+                                    <span className="block text-xs text-muted-foreground font-normal">
+                                      {getSalleName(table.salleId)}
+                                    </span>
+                                  )}
                                 </DialogTitle>
                               </DialogHeader>
                               <div className="space-y-3 max-h-96 overflow-y-auto">
