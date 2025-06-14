@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Table, Reservation, TableWithReservations, TableStatus } from '@/types/restaurant';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
@@ -27,32 +26,65 @@ export const useRestaurant = () => {
 };
 
 export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
-  const [tables, setTables] = useState<Table[]>([
+  // Génération des IDs statiques pour cohérence entre tables et réservations d'init
+  const tableData = [
     {
       id: '1',
       numero: 1,
       forme: 'ronde',
-      nombrePersonnes: 4,
-      position: { x: 100, y: 100 }
+      nombrePersonnes: 6,
+      position: { x: 120, y: 110 }
     },
     {
       id: '2',
       numero: 2,
+      forme: 'carre',
+      nombrePersonnes: 4,
+      position: { x: 230, y: 160 }
+    },
+    {
+      id: '3',
+      numero: 3,
       forme: 'rectangulaire',
-      nombrePersonnes: 6,
-      position: { x: 200, y: 150 },
+      nombrePersonnes: 8,
+      position: { x: 340, y: 210 },
       rotation: 0
     }
-  ]);
+  ];
+
+  // Calcul de la date du dernier jour du mois
+  const today = new Date();
+  const lastDayOfMonth = endOfMonth(today);
+
+  // Réservations :
+  // - Aujourd'hui, table ronde (id:1), 4p, 12h30, nom: "M. Dupond"
+  // - Aujourd'hui, table rectangulaire (id:3), 7p, 20h, nom: "Patrick"
+  // - Dernier jour du mois, table carrée (id:2), 4p, 19h15, nom: non précisé
+  const [tables, setTables] = useState<Table[]>(tableData);
 
   const [reservations, setReservations] = useState<Reservation[]>([
     {
       id: '1',
       tableId: '1',
-      date: new Date(),
-      heure: '19:30',
+      date: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 30),
+      heure: '12:30',
       nombrePersonnes: 4,
-      nomClient: 'Dupont'
+      nomClient: 'M. Dupond'
+    },
+    {
+      id: '2',
+      tableId: '3',
+      date: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 20, 0),
+      heure: '20:00',
+      nombrePersonnes: 7,
+      nomClient: 'Patrick'
+    },
+    {
+      id: '3',
+      tableId: '2',
+      date: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 19, 15),
+      heure: '19:15',
+      nombrePersonnes: 4,
     }
   ]);
 
