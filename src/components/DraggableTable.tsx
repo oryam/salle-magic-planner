@@ -194,7 +194,6 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
     const chairs = [];
     const baseSize = 60; // diamètre ou côté de base
     const chairSize = 16;
-    const radius = baseSize / 2 + 8; // espace entre la table et les chaises
 
     if (nombre === 0) return null;
 
@@ -202,8 +201,8 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
       // Disposer les chaises en cercle 
       for (let i = 0; i < nombre; i++) {
         const angle = ((2 * Math.PI) / nombre) * i + ((rotation || 0) * Math.PI / 180);
-        const x = Math.cos(angle) * radius + baseSize / 2 - chairSize / 2;
-        const y = Math.sin(angle) * radius + baseSize / 2 - chairSize / 2;
+        const x = Math.cos(angle) * (baseSize / 2 + 8) + baseSize / 2 - chairSize / 2;
+        const y = Math.sin(angle) * (baseSize / 2 + 8) + baseSize / 2 - chairSize / 2;
         chairs.push(
           <div
             key={i}
@@ -323,84 +322,16 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
         );
       }
     } else if (forme === 'rectangulaire') {
-      // Répartition : 1 chaise sur chaque largeur, le reste sur les longueurs
-      const w = baseSize * 1.5;
-      const h = baseSize * 0.7;
-      const chairShortSideCount = 2; // 1 par largeur
-      const totalChairs = nombre;
+      // Répartir : 1 chaise sur chaque largeur (côtés courts, haut/bas), le reste sur les longueurs (côtés longs, gauche/droite)
+      const w = baseSize * 1.5; // longueur (horizontal)
+      const h = baseSize * 0.7; // largeur (vertical)
+      const minChairsOnWidth = 2; // 1 en haut, 1 en bas
 
-      if (totalChairs < 3) {
-        // Cas particulier : 0/1/2 chaises, on met sur les largeurs puis les longueurs
-        if (totalChairs === 1) {
-          // met une sur la largeur du dessus
-          chairs.push(
-            <div
-              key={`short-0`}
-              style={{
-                position: 'absolute',
-                left: (w - chairSize) / 2,
-                top: -chairSize - 4,
-                width: chairSize,
-                height: chairSize,
-                background: '#d1d5db',
-                border: '2px solid #374151',
-                borderRadius: '6px',
-                boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
-                zIndex: 1,
-                pointerEvents: 'none'
-              }}
-            />
-          );
-        }
-        if (totalChairs === 2) {
-          // une sur chaque largeur
-          chairs.push(
-            <div
-              key={`short-0`}
-              style={{
-                position: 'absolute',
-                left: (w - chairSize) / 2,
-                top: -chairSize - 4,
-                width: chairSize,
-                height: chairSize,
-                background: '#d1d5db',
-                border: '2px solid #374151',
-                borderRadius: '6px',
-                boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
-                zIndex: 1,
-                pointerEvents: 'none'
-              }}
-            />
-          );
-          chairs.push(
-            <div
-              key={`short-1`}
-              style={{
-                position: 'absolute',
-                left: (w - chairSize) / 2,
-                top: h + 4,
-                width: chairSize,
-                height: chairSize,
-                background: '#d1d5db',
-                border: '2px solid #374151',
-                borderRadius: '6px',
-                boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
-                zIndex: 1,
-                pointerEvents: 'none'
-              }}
-            />
-          );
-        }
-      } else {
-        // 1 chaise par largeur (haut/bas), reste sur la longueur
-        const longSideChairs = totalChairs - chairShortSideCount;
-        const longSidePerSide = Math.floor(longSideChairs / 2);
-        const extra = longSideChairs % 2;
-
-        // -- Chaises sur le côté haut (largeur 1)
+      if (nombre === 1) {
+        // Une chaise seulement, positionnée en haut (largeur)
         chairs.push(
           <div
-            key="short-top"
+            key="width-top-0"
             style={{
               position: 'absolute',
               left: (w - chairSize) / 2,
@@ -416,10 +347,29 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
             }}
           />
         );
-        // -- Chaises sur le côté bas (largeur 2)
+      } else if (nombre === 2) {
+        // Une chaise en haut, une en bas
         chairs.push(
           <div
-            key="short-bottom"
+            key="width-top-0"
+            style={{
+              position: 'absolute',
+              left: (w - chairSize) / 2,
+              top: -chairSize - 4,
+              width: chairSize,
+              height: chairSize,
+              background: '#d1d5db',
+              border: '2px solid #374151',
+              borderRadius: '6px',
+              boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+              zIndex: 1,
+              pointerEvents: 'none'
+            }}
+          />
+        );
+        chairs.push(
+          <div
+            key="width-bottom-0"
             style={{
               position: 'absolute',
               left: (w - chairSize) / 2,
@@ -435,10 +385,53 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
             }}
           />
         );
-        // -- Répartir sur les longueurs (gauche et droite)
-        // Gauche
-        for (let i = 0; i < longSidePerSide; i++) {
-          const y = ((h - chairSize) / (longSidePerSide + (extra > 0 && i === 0 ? 1 : 0) + 1)) * (i + 1);
+      } else {
+        // 1 chaise sur chaque largeur (haut/bas), reste réparti sur longueurs (gauche/droite)
+        const longSideChairs = nombre - minChairsOnWidth;
+        const perLongSide = Math.floor(longSideChairs / 2);
+        const extra = longSideChairs % 2;
+
+        // Haut (largeur/short side)
+        chairs.push(
+          <div
+            key="width-top-0"
+            style={{
+              position: 'absolute',
+              left: (w - chairSize) / 2,
+              top: -chairSize - 4,
+              width: chairSize,
+              height: chairSize,
+              background: '#d1d5db',
+              border: '2px solid #374151',
+              borderRadius: '6px',
+              boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+              zIndex: 1,
+              pointerEvents: 'none'
+            }}
+          />
+        );
+        // Bas (largeur/short side)
+        chairs.push(
+          <div
+            key="width-bottom-0"
+            style={{
+              position: 'absolute',
+              left: (w - chairSize) / 2,
+              top: h + 4,
+              width: chairSize,
+              height: chairSize,
+              background: '#d1d5db',
+              border: '2px solid #374151',
+              borderRadius: '6px',
+              boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+              zIndex: 1,
+              pointerEvents: 'none'
+            }}
+          />
+        );
+        // Gauche (longueur/long side)
+        for (let i = 0; i < perLongSide + (extra > 0 ? 1 : 0); i++) {
+          const y = ((h - chairSize) / (perLongSide + (extra > 0 ? 1 : 0) + 1)) * (i + 1);
           chairs.push(
             <div
               key={`long-left-${i}`}
@@ -458,9 +451,9 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
             />
           );
         }
-        // Droite
-        for (let i = 0; i < longSidePerSide + extra; i++) {
-          const y = ((h - chairSize) / (longSidePerSide + extra + 1)) * (i + 1);
+        // Droite (longueur/long side)
+        for (let i = 0; i < perLongSide; i++) {
+          const y = ((h - chairSize) / (perLongLongSideDivisor(perLongSide, extra) + 1)) * (i + 1);
           chairs.push(
             <div
               key={`long-right-${i}`}
@@ -484,6 +477,11 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
     }
     return chairs;
   };
+
+  // Fonction utilitaire pour bien répartir les chaises si le nombre total à gauche/droite diffère
+  function perLongLongSideDivisor(perLongSide: number, extra: number) {
+    return perLongSide + (extra > 0 ? 0 : 0); // simple, mais permet extension/fine tuning si besoin plus tard
+  }
 
   return (
     <div
