@@ -17,10 +17,10 @@ const Navigation = () => {
 
   if (isMobile) {
     return (
-      <nav className="bg-white border-b border-border px-6 py-4">
+      <nav className="bg-white border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <SidebarTrigger />
-          <h1 className="text-lg font-semibold">Salle Magic Planner</h1>
+          <h1 className="text-base font-semibold md:text-lg">Salle Magic Planner</h1>
         </div>
       </nav>
     );
@@ -28,19 +28,20 @@ const Navigation = () => {
 
   return (
     <nav className="bg-white border-b border-border px-6 py-4">
-      <div className="flex space-x-8">
+      <div className="flex space-x-4">
         {navItems.map(({ path, label, icon: Icon }) => (
           <Link
             key={path}
             to={path}
             className={cn(
-              "flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors",
+              "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors",
+              "text-sm md:text-base", // Ajout responsive
               location.pathname === path
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
             )}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-4 w-4 md:h-5 md:w-5" />
             <span className="font-medium">{label}</span>
           </Link>
         ))}
@@ -50,3 +51,4 @@ const Navigation = () => {
 };
 
 export default Navigation;
+

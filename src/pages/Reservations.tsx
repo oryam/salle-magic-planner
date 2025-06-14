@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,20 +110,20 @@ const Reservations = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-2 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Tableau de bord des réservations</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+          <h1 className="text-lg sm:text-3xl font-bold">Tableau de bord des réservations</h1>
           <ReservationForm currentDate={currentDate} period={period} />
         </div>
 
         {/* Contrôles de période */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+        <Card className="mb-4 sm:mb-6">
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+              <div className="flex items-center space-x-2 sm:space-x-4 w-full">
                 <Select value={period} onValueChange={(value: PeriodType) => setPeriod(value)}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-24 sm:w-32 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -133,12 +134,12 @@ const Reservations = () => {
                   </SelectContent>
                 </Select>
                 
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => navigatePeriod('prev')}>
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <Button variant="outline" size="sm" className="px-2 py-1 sm:px-3 sm:py-2" onClick={() => navigatePeriod('prev')}>
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
-                  <span className="font-medium min-w-48 text-center">{formatPeriodDisplay()}</span>
-                  <Button variant="outline" size="sm" onClick={() => navigatePeriod('next')}>
+                  <span className="font-medium min-w-32 sm:min-w-48 text-center text-xs sm:text-base">{formatPeriodDisplay()}</span>
+                  <Button variant="outline" size="sm" className="px-2 py-1 sm:px-3 sm:py-2" onClick={() => navigatePeriod('next')}>
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -148,39 +149,39 @@ const Reservations = () => {
         </Card>
 
         {/* Indicateurs clés */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6 mb-4 sm:mb-6">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Tables libres</p>
-                  <p className="text-3xl font-bold text-green-600">{stats.tablesLibres}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Tables libres</p>
+                  <p className="text-xl sm:text-3xl font-bold text-green-600">{stats.tablesLibres}</p>
                 </div>
-                <Calendar className="h-8 w-8 text-green-600" />
+                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Réservations</p>
-                  <p className="text-3xl font-bold text-blue-600">{stats.nombreReservations}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Réservations</p>
+                  <p className="text-xl sm:text-3xl font-bold text-blue-600">{stats.nombreReservations}</p>
                 </div>
-                <Calendar className="h-8 w-8 text-blue-600" />
+                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Nombre de personnes</p>
-                  <p className="text-3xl font-bold text-purple-600">{stats.totalPersonnes}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Nombre de personnes</p>
+                  <p className="text-xl sm:text-3xl font-bold text-purple-600">{stats.totalPersonnes}</p>
                 </div>
-                <Users className="h-8 w-8 text-purple-600" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
               </div>
             </CardContent>
           </Card>
@@ -189,21 +190,21 @@ const Reservations = () => {
         {/* Liste des tables */}
         <Card>
           <CardHeader>
-            <CardTitle>État des tables</CardTitle>
+            <CardTitle className="text-base sm:text-lg">État des tables</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {tablesWithReservations.map(table => (
                 <div
                   key={table.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 gap-2 sm:gap-0"
                 >
-                  <div className="flex items-center space-x-4">
-                    <TableIcon forme={table.forme} className="h-6 w-6" />
+                  <div className="flex items-center space-x-2 sm:space-x-4">
+                    <TableIcon forme={table.forme} className="h-5 w-5 sm:h-6 sm:w-6" />
                     <div>
-                      <span className="font-medium">Table {table.numero}</span>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-sm text-muted-foreground">
+                      <span className="font-medium text-sm sm:text-base">Table {table.numero}</span>
+                      <div className="flex items-center space-x-1 sm:space-x-2 mt-1">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
                           {table.nombrePersonnes} personnes
                         </span>
                         {getStatusBadge(table.statut)}
@@ -216,7 +217,7 @@ const Reservations = () => {
                       <Dialog>
                         <DialogTrigger asChild>
                           <button 
-                            className="text-sm font-medium hover:underline"
+                            className="text-xs sm:text-sm font-medium hover:underline"
                             onClick={() => setSelectedTable(table)}
                           >
                             {formatReservationDate(table.prochaineDateReservation)}
@@ -224,22 +225,24 @@ const Reservations = () => {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Réservations - Table {table.numero}</DialogTitle>
+                            <DialogTitle className="text-base sm:text-lg">
+                              Réservations - Table {table.numero}
+                            </DialogTitle>
                           </DialogHeader>
                           <div className="space-y-3 max-h-96 overflow-y-auto">
                             {table.reservations.map(reservation => (
-                              <div key={reservation.id} className="flex items-center justify-between p-3 border rounded">
+                              <div key={reservation.id} className="flex items-center justify-between p-2 sm:p-3 border rounded">
                                 <div>
-                                  <p className="font-medium">{reservation.nomClient}</p>
-                                  <p className="text-sm text-muted-foreground">
+                                  <p className="font-medium text-sm sm:text-base">{reservation.nomClient}</p>
+                                  <p className="text-xs sm:text-sm text-muted-foreground">
                                     {formatReservationDate(reservation.date)} - {reservation.nombrePersonnes} personnes
                                   </p>
                                 </div>
-                                <div className="flex space-x-2">
-                                  <Button size="sm" variant="outline" onClick={() => handleEditReservation(reservation)}>
+                                <div className="flex space-x-1 sm:space-x-2">
+                                  <Button size="sm" variant="outline" className="p-2 sm:p-3" onClick={() => handleEditReservation(reservation)}>
                                     <Edit className="h-4 w-4" />
                                   </Button>
-                                  <Button size="sm" variant="outline" onClick={() => handleDeleteReservation(reservation.id)}>
+                                  <Button size="sm" variant="outline" className="p-2 sm:p-3" onClick={() => handleDeleteReservation(reservation.id)}>
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </div>
@@ -257,13 +260,13 @@ const Reservations = () => {
                   )}
                 </div>
               ))}
-            </div>
 
-            {tablesWithReservations.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Aucune table configurée</p>
-              </div>
-            )}
+              {tablesWithReservations.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground text-xs sm:text-base">Aucune table configurée</p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -271,12 +274,12 @@ const Reservations = () => {
         <Dialog open={!!editingReservation} onOpenChange={() => setEditingReservation(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Modifier la réservation</DialogTitle>
+              <DialogTitle className="text-base sm:text-lg">Modifier la réservation</DialogTitle>
             </DialogHeader>
             {editingReservation && (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <Label htmlFor="nomClient">Nom du client</Label>
+                  <Label htmlFor="nomClient" className="text-xs sm:text-sm">Nom du client</Label>
                   <Input
                     id="nomClient"
                     value={editingReservation.nomClient}
@@ -284,7 +287,7 @@ const Reservations = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="date">Date</Label>
+                  <Label htmlFor="date" className="text-xs sm:text-sm">Date</Label>
                   <Input
                     id="date"
                     type="date"
@@ -293,7 +296,7 @@ const Reservations = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="heure">Heure</Label>
+                  <Label htmlFor="heure" className="text-xs sm:text-sm">Heure</Label>
                   <Input
                     id="heure"
                     type="time"
@@ -302,7 +305,7 @@ const Reservations = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="nombrePersonnes">Nombre de personnes</Label>
+                  <Label htmlFor="nombrePersonnes" className="text-xs sm:text-sm">Nombre de personnes</Label>
                   <Input
                     id="nombrePersonnes"
                     type="number"
@@ -311,8 +314,8 @@ const Reservations = () => {
                   />
                 </div>
                 <div className="flex space-x-2">
-                  <Button onClick={handleSaveReservation}>Sauvegarder</Button>
-                  <Button variant="outline" onClick={() => setEditingReservation(null)}>Annuler</Button>
+                  <Button className="text-xs sm:text-sm" onClick={handleSaveReservation}>Sauvegarder</Button>
+                  <Button variant="outline" className="text-xs sm:text-sm" onClick={() => setEditingReservation(null)}>Annuler</Button>
                 </div>
               </div>
             )}
@@ -324,3 +327,4 @@ const Reservations = () => {
 };
 
 export default Reservations;
+
