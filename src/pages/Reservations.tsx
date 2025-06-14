@@ -19,6 +19,8 @@ import { Search } from 'lucide-react'; // Ajout pour l'icône Loupe
 
 type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
 
+const ALL_SALLES_VALUE = "all";
+
 const Reservations = () => {
   const { getTablesWithReservations, salles, updateReservation, deleteReservation } = useRestaurant();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -29,7 +31,7 @@ const Reservations = () => {
   const [newReservationDate, setNewReservationDate] = useState<Date | null>(null);
   const [newReservationTableId, setNewReservationTableId] = useState<string | null>(null);
 
-  const [selectedSalleId, setSelectedSalleId] = useState<string>(""); // valeur "" = toutes les salles
+  const [selectedSalleId, setSelectedSalleId] = useState<string>(ALL_SALLES_VALUE); // valeur "all" = toutes les salles
   const [searchTerm, setSearchTerm] = useState<string>(""); // état recherche
 
   const getCurrentPeriodStart = () => {
@@ -76,7 +78,7 @@ const Reservations = () => {
   };
 
   // tables filtrées par salle sélectionnée
-  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period, selectedSalleId);
+  const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period, selectedSalleId === ALL_SALLES_VALUE ? "" : selectedSalleId);
 
   // Filtrage des tables/réservations selon la recherche
   const filteredTablesWithReservations = tablesWithReservations.map(table => {
@@ -132,7 +134,6 @@ const Reservations = () => {
     setEditingReservation(null);
   };
 
-  // Nouveau handler pour édition depuis calendrier
   const handleReservationClick = (reservation: any) => {
     setEditingReservation(reservation);
   };
@@ -141,7 +142,6 @@ const Reservations = () => {
     setNewReservationDate(date);
   };
 
-  // Ajout handler pour ouverture sur table spécifique
   const handleOpenReservationFormForTable = (tableId: string) => {
     setNewReservationTableId(tableId);
     setNewReservationDate(null); // ne pas pré-sélectionner de date
@@ -163,7 +163,7 @@ const Reservations = () => {
             newReservationDate={newReservationDate}
             newReservationTableId={newReservationTableId}
             onDialogClose={handleCloseReservationForm}
-            salleId={selectedSalleId}
+            salleId={selectedSalleId === ALL_SALLES_VALUE ? undefined : selectedSalleId}
           />
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">

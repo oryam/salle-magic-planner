@@ -11,6 +11,8 @@ interface SalleSelectorProps {
   showAllOption?: boolean; // nouvelle prop optionnelle
 }
 
+const ALL_VALUE = "all";
+
 const SalleSelector: React.FC<SalleSelectorProps> = ({
   salles,
   selectedSalleId,
@@ -24,7 +26,7 @@ const SalleSelector: React.FC<SalleSelectorProps> = ({
     </SelectTrigger>
     <SelectContent>
       {showAllOption && (
-        <SelectItem value="">
+        <SelectItem value={ALL_VALUE}>
           Tout voir
         </SelectItem>
       )}
@@ -36,4 +38,3 @@ const SalleSelector: React.FC<SalleSelectorProps> = ({
 );
 
 export default SalleSelector;
-
