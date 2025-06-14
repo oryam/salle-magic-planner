@@ -223,103 +223,43 @@ const DraggableTable = ({ table, statut, reservations = [], currentDate = new Da
         );
       }
     } else if (forme === 'carre') {
-      // Répartir sur les 4 côtés (même nombre de chaises par côté si possible)
+      // Répartir en alternant côté opposé (haut/bas, gauche/droite)
       const w = baseSize;
       const h = baseSize;
-      const chairsPerSide = [0, 0, 0, 0];
-      for (let i = 0; i < 4; i++) {
-        chairsPerSide[i] = Math.floor(nombre / 4);
-      }
-      for (let i = 0; i < nombre % 4; i++) {
-        chairsPerSide[i]++;
-      }
-      // Haut
-      for (let i = 0; i < chairsPerSide[0]; i++) {
-        const x = ((w - chairSize) / (chairsPerSide[0] + 1)) * (i + 1);
-        chairs.push(
-          <div
-            key={`top-${i}`}
-            style={{
-              position: 'absolute',
-              left: x,
-              top: -chairSize - 4,
-              width: chairSize,
-              height: chairSize,
-              background: '#d1d5db',
-              border: '2px solid #374151',
-              borderRadius: '6px',
-              boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
-              zIndex: 1,
-              pointerEvents: 'none'
-            }}
-          />
-        );
-      }
-      // Bas
-      for (let i = 0; i < chairsPerSide[2]; i++) {
-        const x = ((w - chairSize) / (chairsPerSide[2] + 1)) * (i + 1);
-        chairs.push(
-          <div
-            key={`bottom-${i}`}
-            style={{
-              position: 'absolute',
-              left: x,
-              top: h + 4,
-              width: chairSize,
-              height: chairSize,
-              background: '#d1d5db',
-              border: '2px solid #374151',
-              borderRadius: '6px',
-              boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
-              zIndex: 1,
-              pointerEvents: 'none'
-            }}
-          />
-        );
-      }
-      // Gauche
-      for (let i = 0; i < chairsPerSide[3]; i++) {
-        const y = ((h - chairSize) / (chairsPerSide[3] + 1)) * (i + 1);
-        chairs.push(
-          <div
-            key={`left-${i}`}
-            style={{
-              position: 'absolute',
-              left: -chairSize - 4,
-              top: y,
-              width: chairSize,
-              height: chairSize,
-              background: '#d1d5db',
-              border: '2px solid #374151',
-              borderRadius: '6px',
-              boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
-              zIndex: 1,
-              pointerEvents: 'none'
-            }}
-          />
-        );
-      }
-      // Droite
-      for (let i = 0; i < chairsPerSide[1]; i++) {
-        const y = ((h - chairSize) / (chairsPerSide[1] + 1)) * (i + 1);
-        chairs.push(
-          <div
-            key={`right-${i}`}
-            style={{
-              position: 'absolute',
-              left: w + 4,
-              top: y,
-              width: chairSize,
-              height: chairSize,
-              background: '#d1d5db',
-              border: '2px solid #374151',
-              borderRadius: '6px',
-              boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
-              zIndex: 1,
-              pointerEvents: 'none'
-            }}
-          />
-        );
+      // Ordre des faces : haut -> bas -> gauche -> droite (puis recommence)
+      const placements = ["top", "bottom", "left", "right"];
+      for (let i = 0; i < nombre; i++) {
+        const positionType = placements[i % 4];
+        let chairProps: React.CSSProperties = {
+          position: 'absolute',
+          width: chairSize,
+          height: chairSize,
+          background: '#d1d5db',
+          border: '2px solid #374151',
+          borderRadius: '6px',
+          boxShadow: '0 1px 3px rgba(60,60,60,0.08)',
+          zIndex: 1,
+          pointerEvents: 'none'
+        };
+        switch (positionType) {
+          case "top":
+            chairProps.left = ((w - chairSize) / (Math.ceil(nombre / 4) + 1)) * (Math.floor(i / 4) + 1);
+            chairProps.top = -chairSize - 4;
+            break;
+          case "bottom":
+            chairProps.left = ((w - chairSize) / (Math.ceil(nombre / 4) + 1)) * (Math.floor(i / 4) + 1);
+            chairProps.top = h + 4;
+            break;
+          case "left":
+            chairProps.left = -chairSize - 4;
+            chairProps.top = ((h - chairSize) / (Math.ceil(nombre / 4) + 1)) * (Math.floor(i / 4) + 1);
+            break;
+          case "right":
+            chairProps.left = w + 4;
+            chairProps.top = ((h - chairSize) / (Math.ceil(nombre / 4) + 1)) * (Math.floor(i / 4) + 1);
+            break;
+        }
+        chairs.push(<div key={`carre-${i}`} style={chairProps} />);
       }
     } else if (forme === 'rectangulaire') {
       // Répartition : 1 chaise sur chaque largeur (gauche/droite, côtés courts), le reste sur les longueurs (haut/bas, côtés longs)
