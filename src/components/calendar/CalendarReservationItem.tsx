@@ -23,6 +23,11 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
 }) => {
   const resDateObj = new Date(reservation.date);
 
+  // Formatage pour le nombre de personnes
+  const personnesText = reservation.nombrePersonnes
+    ? `${reservation.nombrePersonnes} ${reservation.nombrePersonnes > 1 ? "pers." : "pers."}`
+    : "";
+
   return (
     <li
       className={`text-xs bg-primary/10 hover:bg-primary/20 rounded px-1 py-0.5 cursor-pointer transition-colors duration-100 ${isPast ? "text-muted-foreground" : ""}`}
@@ -30,8 +35,8 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
       title="Modifier la réservation"
     >
       {showDate
-        ? `${format(resDateObj, "d MMM HH:mm", { locale: fr })} – Table ${tableNum ?? reservation.tableNum} – ${reservation.nomClient ?? ""}`
-        : `${format(resDateObj, "HH:mm", { locale: fr })} – T${tableNum ?? reservation.tableNum}${reservation.nomClient ? ` – ${reservation.nomClient}` : ""}`
+        ? `${format(resDateObj, "d MMM HH:mm", { locale: fr })} – Table ${tableNum ?? reservation.tableNum}${personnesText ? ` – ${personnesText}` : ""}${reservation.nomClient ? ` – ${reservation.nomClient}` : ""}`
+        : `${format(resDateObj, "HH:mm", { locale: fr })} – T${tableNum ?? reservation.tableNum}${personnesText ? ` – ${personnesText}` : ""}${reservation.nomClient ? ` – ${reservation.nomClient}` : ""}`
       }
     </li>
   );
