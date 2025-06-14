@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ interface ReservationFormProps {
   currentDate?: Date;
   period?: string;
   newReservationDate?: Date | null;
+  newReservationTableId?: string | null; // Ajout de la prop
   onDialogClose?: () => void;
 }
 
@@ -23,6 +25,7 @@ const ReservationForm = ({
   currentDate = new Date(),
   period = 'jour',
   newReservationDate,
+  newReservationTableId, // récupération
   onDialogClose,
 }: ReservationFormProps) => {
   const { tables, reservations, addReservation, getTableStatus } = useRestaurant();
@@ -33,12 +36,12 @@ const ReservationForm = ({
   const [nombrePersonnes, setNombrePersonnes] = useState('');
   const [nomClient, setNomClient] = useState('');
 
-  // Ouvrir le dialogue si déclenché depuis le calendrier
+  // Ouvrir le dialogue si déclenché depuis le calendrier ou Etat de table
   useEffect(() => {
-    if (newReservationDate) {
+    if (newReservationDate || newReservationTableId) {
       setOpen(true);
     }
-  }, [newReservationDate]);
+  }, [newReservationDate, newReservationTableId]);
 
   // Pré-remplir la date
   useEffect(() => {
@@ -55,6 +58,13 @@ const ReservationForm = ({
       setDate(format(defaultDate, 'yyyy-MM-dd'));
     }
   }, [open, currentDate, period, newReservationDate]);
+
+  // Pré-remplir la table sélectionnée si newReservationTableId
+  useEffect(() => {
+    if (open && newReservationTableId) {
+      setSelectedTableId(newReservationTableId);
+    }
+  }, [open, newReservationTableId]);
 
   // Pré-remplir le nombre de personnes selon la table sélectionnée
   useEffect(() => {

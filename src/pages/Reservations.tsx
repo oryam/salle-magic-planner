@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,7 @@ const Reservations = () => {
   const [editingReservation, setEditingReservation] = useState<any>(null);
   const [calendarView, setCalendarView] = useState(false);
   const [newReservationDate, setNewReservationDate] = useState<Date | null>(null);
+  const [newReservationTableId, setNewReservationTableId] = useState<string | null>(null);
 
   const getCurrentPeriodStart = () => {
     switch (period) {
@@ -122,8 +122,15 @@ const Reservations = () => {
     setNewReservationDate(date);
   };
 
+  // Ajout handler pour ouverture sur table spécifique
+  const handleOpenReservationFormForTable = (tableId: string) => {
+    setNewReservationTableId(tableId);
+    setNewReservationDate(null); // ne pas pré-sélectionner de date
+  };
+
   const handleCloseReservationForm = () => {
     setNewReservationDate(null);
+    setNewReservationTableId(null);
   };
 
   return (
@@ -135,6 +142,7 @@ const Reservations = () => {
             currentDate={currentDate}
             period={period}
             newReservationDate={newReservationDate}
+            newReservationTableId={newReservationTableId}
             onDialogClose={handleCloseReservationForm}
           />
         </div>
@@ -245,14 +253,17 @@ const Reservations = () => {
                     >
                       <div className="flex items-center space-x-2 sm:space-x-4">
                         <TableIcon forme={table.forme} className="h-5 w-5 sm:h-6 sm:w-6" />
-                        <div>
-                          <span className="font-medium text-sm sm:text-base">Table {table.numero}</span>
-                          <div className="flex items-center space-x-1 sm:space-x-2 mt-1">
-                            <span className="text-xs sm:text-sm text-muted-foreground">
-                              {table.nombrePersonnes} personnes
-                            </span>
-                            {getStatusBadge(table.statut)}
-                          </div>
+                        <button
+                          type="button"
+                          className="font-medium text-sm sm:text-base text-primary hover:underline focus:outline-none"
+                          onClick={() => handleOpenReservationFormForTable(table.id)}
+                          aria-label={`Ajouter une réservation sur table ${table.numero}`}
+                        >
+                          Table {table.numero}
+                        </button>
+                        <div className="flex items-center space-x-1 sm:space-x-2 mt-1">
+                          <span className="text-xs sm:text-sm text-muted-foreground">{table.nombrePersonnes} personnes</span>
+                          {getStatusBadge(table.statut)}
                         </div>
                       </div>
                       
