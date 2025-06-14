@@ -11,7 +11,6 @@ import Navigation from "@/components/Navigation";
 import Configuration from "@/pages/Configuration";
 import Salle from "@/pages/Salle";
 import Reservations from "@/pages/Reservations";
-import ImportExport from "@/pages/ImportExport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,7 +31,6 @@ const App = () => (
                   <Route path="/" element={<Configuration />} />
                   <Route path="/salle" element={<Salle />} />
                   <Route path="/reservations" element={<Reservations />} />
-                  <Route path="/import-export" element={<ImportExport />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </SidebarInset>

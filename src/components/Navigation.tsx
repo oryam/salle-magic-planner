@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Settings, Layout, Calendar, Import } from 'lucide-react';
+import { Settings, Layout, Calendar } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
@@ -12,8 +12,7 @@ const Navigation = () => {
   const navItems = [
     { path: '/', label: 'Configuration', icon: Settings },
     { path: '/salle', label: 'Ma salle', icon: Layout },
-    { path: '/reservations', label: 'Réservations', icon: Calendar },
-    { path: '/import-export', label: 'Import/Export', icon: Import }
+    { path: '/reservations', label: 'Réservations', icon: Calendar }
   ];
 
   if (isMobile) {
@@ -52,3 +51,4 @@ const Navigation = () => {
 };
 
 export default Navigation;
+
