@@ -1,4 +1,3 @@
-
 import React, { useRef } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { Button } from "@/components/ui/button";
@@ -25,15 +24,21 @@ function parseDateFr(str: string) {
 }
 
 function arrayToCsv<T>(arr: T[], columns: (keyof T)[]): string {
-  const escape = (v: any) =>
-    typeof v === "string"
-      ? '"' + v.replace(/"/g, '""') + '"'
-      : v === undefined || v === null
-      ? ""
-      : v instanceof Date
-        ? formatDateFr(v)
-        : v.toString();
+  // Fonction d'échappement selon la norme CSV (RFC4180)
+  // - Mettre entre quotes uniquement si contain: virgule, guillemet, CR ou LF
+  // - Doubler chaque guillemet interne
+  const escape = (v: any) => {
+    if (v === undefined || v === null) return "";
+    if (v instanceof Date) return formatDateFr(v);
 
+    const s = String(v);
+    if (/[",\r\n]/.test(s)) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  };
+
+  // Les headers sans guillemets, sans transformation
   const header = columns.join(",");
   const rows = arr.map(obj =>
     columns.map(col => escape(obj[col])).join(",")
@@ -129,12 +134,11 @@ const ImportExport = () => {
   const tableInputRef = useRef<HTMLInputElement>(null);
   const reservationInputRef = useRef<HTMLInputElement>(null);
 
-  // Télécharger en CSV, avec BOM UTF-8 & bonne gestion date
+  // Télécharger en CSV, avec BOM UTF-8 & bonne gestion date et accents
   const downloadCSV = (data: any[], columns: string[], filename: string, rowMapFn?: (d: any) => any) => {
-    // Attention aux dates (ex pour Réservations)
     const mapped = rowMapFn ? data.map(rowMapFn) : data;
     const csv = arrayToCsv(mapped, columns);
-    // Ajout du BOM UTF-8
+    // BOM UTF-8 au début pour Excel & co, accent et caractères spéciaux OK
     const csvWithBom = "\uFEFF" + csv;
     const blob = new Blob([csvWithBom], {
       type: "text/csv;charset=utf-8;",
