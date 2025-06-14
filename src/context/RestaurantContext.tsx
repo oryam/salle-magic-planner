@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { 
   Table, Reservation, TableWithReservations, 
@@ -20,6 +19,9 @@ interface RestaurantContextType {
   deleteReservation: (id: string) => void;
   getTablesWithReservations: (date?: Date, period?: string, salleId?: SalleId) => TableWithReservations[];
   getTableStatus: (tableId: string, date: Date) => TableStatus;
+  importSalles: (items: Salle[]) => void;
+  importTables: (items: Table[]) => void;
+  importReservations: (items: Reservation[]) => void;
 }
 
 const RestaurantContext = createContext<RestaurantContextType | undefined>(undefined);
@@ -101,6 +103,22 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       nombrePersonnes: 4,
     }
   ]);
+
+  // Fonctions d'import
+  const importSalles = (newSalles: Salle[]) => {
+    setSalles([...newSalles]);
+  };
+  const importTables = (newTables: Table[]) => {
+    setTables([...newTables]);
+  };
+  const importReservations = (newReservations: Reservation[]) => {
+    // On s'assure que les dates sont bien désérialisées
+    const validatedReservations = newReservations.map((r) => ({
+      ...r,
+      date: typeof r.date === "string" ? new Date(r.date) : r.date,
+    }));
+    setReservations([...validatedReservations]);
+  };
 
   // GESTION DES SALLES
   const addSalle = (nom: string) => {
@@ -229,7 +247,10 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       updateReservation,
       deleteReservation,
       getTablesWithReservations,
-      getTableStatus
+      getTableStatus,
+      importSalles,
+      importTables,
+      importReservations,
     }}>
       {children}
     </RestaurantContext.Provider>

@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Settings, Layout, Calendar } from 'lucide-react';
@@ -12,6 +11,7 @@ import {
   SidebarMenuItem,
   useSidebar, // <- ajout de l'import
 } from '@/components/ui/sidebar';
+import { Upload } from "lucide-react"; // joli pictogramme import/export
 
 export function AppSidebar() {
   const location = useLocation();
@@ -20,7 +20,8 @@ export function AppSidebar() {
   const navItems = [
     { path: '/', label: 'Configuration', icon: Settings },
     { path: '/salle', label: 'Ma salle', icon: Layout },
-    { path: '/reservations', label: 'Réservations', icon: Calendar }
+    { path: '/reservations', label: 'Réservations', icon: Calendar },
+    { path: '/import-export', label: 'Import / Export', icon: Upload }, // Nouveau lien
   ];
 
   // ferme la sidebar mobile lors d'un clic sur lien de navigation

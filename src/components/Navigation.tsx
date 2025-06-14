@@ -1,9 +1,9 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Settings, Layout, Calendar } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Upload } from "lucide-react";
 
 const Navigation = () => {
   const location = useLocation();
@@ -12,7 +12,8 @@ const Navigation = () => {
   const navItems = [
     { path: '/', label: 'Configuration', icon: Settings },
     { path: '/salle', label: 'Ma salle', icon: Layout },
-    { path: '/reservations', label: 'Réservations', icon: Calendar }
+    { path: '/reservations', label: 'Réservations', icon: Calendar },
+    { path: '/import-export', label: 'Import / Export', icon: Upload }, // NEW
   ];
 
   if (isMobile) {
@@ -51,4 +52,3 @@ const Navigation = () => {
 };
 
 export default Navigation;
-
