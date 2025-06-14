@@ -111,6 +111,11 @@ const Reservations = () => {
     setEditingReservation(null);
   };
 
+  // Nouveau handler pour édition depuis calendrier
+  const handleReservationClick = (reservation: any) => {
+    setEditingReservation(reservation);
+  };
+
   return (
     <div className="min-h-screen bg-background p-2 sm:p-6">
       <div className="max-w-6xl mx-auto">
@@ -206,6 +211,7 @@ const Reservations = () => {
             tablesWithReservations={tablesWithReservations}
             period={period}
             currentDate={currentDate}
+            onReservationClick={handleReservationClick}
           />
         ) : (
           <>

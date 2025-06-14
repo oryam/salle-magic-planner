@@ -10,12 +10,14 @@ interface ReservationCalendarViewProps {
   tablesWithReservations: any[];
   period: PeriodType;
   currentDate: Date;
+  onReservationClick?: (reservation: any) => void; // <- ajout du callback
 }
 
 const ReservationCalendarView = ({
   tablesWithReservations,
   period,
   currentDate,
+  onReservationClick,
 }: ReservationCalendarViewProps) => {
   // Pour basculer "simple" <-> "détail" sur chaque mois individuellement
   const [detailedMonths, setDetailedMonths] = useState<{ [key: string]: boolean }>({});
@@ -180,7 +182,9 @@ const ReservationCalendarView = ({
                           return (
                             <li
                               key={idx}
-                              className={`text-xs ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
+                              className={`text-xs hover:bg-primary/20 cursor-pointer rounded px-1 py-0.5 transition-colors duration-100 ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
+                              onClick={() => onReservationClick && onReservationClick(res)}
+                              title="Modifier la réservation"
                             >
                               {format(resDateObj, "d MMM HH:mm", { locale: fr })} – Table {res.tableNum} – {res.nomClient}
                             </li>
@@ -219,7 +223,9 @@ const ReservationCalendarView = ({
                           return (
                             <li
                               key={idx}
-                              className={`text-xs bg-primary/10 rounded px-1 py-0.5 ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
+                              className={`text-xs bg-primary/10 hover:bg-primary/20 rounded px-1 py-0.5 cursor-pointer transition-colors duration-100 ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
+                              onClick={() => onReservationClick && onReservationClick(res)}
+                              title="Modifier la réservation"
                             >
                               {format(resDateObj, "HH:mm", { locale: fr })} – T{res.tableNum}
                               {res.nomClient ? ` – ${res.nomClient}` : ""}
