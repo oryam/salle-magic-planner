@@ -12,6 +12,8 @@ interface ReservationCalendarViewProps {
   currentDate: Date;
   onReservationClick?: (reservation: any) => void; // <- ajout du callback
 }
+import CalendarReservationItem from "./calendar/CalendarReservationItem";
+import CalendarMonthCell from "./calendar/CalendarMonthCell";
 
 const ReservationCalendarView = ({
   tablesWithReservations,
@@ -96,7 +98,6 @@ const ReservationCalendarView = ({
     return { reservationCount, totalPersons };
   };
 
-  // Pour simplification : Vue Mois / Semaine / Jour : grille par jour ; Vue An : grille 12 mois
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -107,7 +108,6 @@ const ReservationCalendarView = ({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {dateRange.map((month: Date) => {
               const monthLabel = format(month, "MMMM yyyy", { locale: fr });
-              // Stock pour le mode de vue du mois courant (par défaut : simple)
               const detailed = detailedMonths[monthLabel] ?? false;
 
               // Récupérer les réservations du mois courant
@@ -123,79 +123,28 @@ const ReservationCalendarView = ({
                   }
                 });
               });
-              // TRI ici
               resForMonth.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
               const hasReservations = resForMonth.length > 0;
               const { reservationCount, totalPersons } = getAggregateForMonth(month);
 
-              // Couleur de fond contrastée :
-              // - vive si réservation, très claire sinon
-              const bgClass = hasReservations
-                ? "bg-blue-300/80 dark:bg-blue-600/50"
-                : "bg-muted/95";
-
-              // Gestion du mode d'affichage simplifié / détaillé
               return (
-                <div
+                <CalendarMonthCell
                   key={monthLabel}
-                  className={`rounded-lg p-3 transition-all ${bgClass}`}
-                >
-                  <div className="font-semibold mb-2 text-sm flex items-center gap-2">
-                    {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}
-                    {hasReservations && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-auto underline px-2 py-0 text-xs"
-                        onClick={() =>
-                          setDetailedMonths(prev => ({
-                            ...prev,
-                            [monthLabel]: !detailed,
-                          }))
-                        }
-                      >
-                        {detailed ? "Simple" : "Détail"}
-                      </Button>
-                    )}
-                  </div>
-                  {/* Mode simple (agrégé) */}
-                  {!detailed ? (
-                    hasReservations ? (
-                      <div>
-                        <div className="text-xs font-medium">
-                          {reservationCount} réservation{reservationCount > 1 ? "s" : ""}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {totalPersons} personnes
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-xs text-muted-foreground">Aucune réservation</div>
-                    )
-                  ) : (
-                    // Mode détaillé (liste complète)
-                    hasReservations ? (
-                      <ul className="space-y-1">
-                        {resForMonth.map((res, idx) => {
-                          const resDateObj = new Date(res.date);
-                          return (
-                            <li
-                              key={idx}
-                              className={`text-xs hover:bg-primary/20 cursor-pointer rounded px-1 py-0.5 transition-colors duration-100 ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
-                              onClick={() => onReservationClick && onReservationClick(res)}
-                              title="Modifier la réservation"
-                            >
-                              {format(resDateObj, "d MMM HH:mm", { locale: fr })} – Table {res.tableNum} – {res.nomClient}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    ) : (
-                      <div className="text-xs text-muted-foreground">Aucune réservation</div>
-                    )
-                  )}
-                </div>
+                  label={monthLabel}
+                  detailed={detailed}
+                  hasReservations={hasReservations}
+                  reservationCount={reservationCount}
+                  totalPersons={totalPersons}
+                  reservations={resForMonth}
+                  onToggleDetail={() =>
+                    setDetailedMonths(prev => ({
+                      ...prev,
+                      [monthLabel]: !detailed,
+                    }))
+                  }
+                  onReservationClick={onReservationClick}
+                />
               );
             })}
           </div>
@@ -218,20 +167,15 @@ const ReservationCalendarView = ({
                       <span className="text-xs text-muted-foreground">Libre</span>
                     ) : (
                       <ul className="space-y-1">
-                        {resForDay.map((res, idx) => {
-                          const resDateObj = new Date(res.date);
-                          return (
-                            <li
-                              key={idx}
-                              className={`text-xs bg-primary/10 hover:bg-primary/20 rounded px-1 py-0.5 cursor-pointer transition-colors duration-100 ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
-                              onClick={() => onReservationClick && onReservationClick(res)}
-                              title="Modifier la réservation"
-                            >
-                              {format(resDateObj, "HH:mm", { locale: fr })} – T{res.tableNum}
-                              {res.nomClient ? ` – ${res.nomClient}` : ""}
-                            </li>
-                          );
-                        })}
+                        {resForDay.map((res, idx) => (
+                          <CalendarReservationItem
+                            key={idx}
+                            reservation={res}
+                            tableNum={res.tableNum}
+                            isPast={isPastDate(new Date(res.date))}
+                            onClick={onReservationClick}
+                          />
+                        ))}
                       </ul>
                     )}
                   </div>
