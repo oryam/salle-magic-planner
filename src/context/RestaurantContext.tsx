@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Table, Reservation, TableWithReservations, TableStatus } from '@/types/restaurant';
+import { Table, Reservation, TableWithReservations, TableStatus, TableShape } from '@/types/restaurant';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 
 interface RestaurantContextType {
@@ -27,7 +28,7 @@ export const useRestaurant = () => {
 
 export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
   // Génération des IDs statiques pour cohérence entre tables et réservations d'init
-  const tableData = [
+  const tableData: Table[] = [
     {
       id: '1',
       numero: 1,
