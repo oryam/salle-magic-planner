@@ -35,7 +35,7 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
       title="Modifier la réservation"
     >
       {showDate
-        ? `${format(resDateObj, "d MMM HH:mm", { locale: fr })} – Table ${tableNum ?? reservation.tableNum}${personnesText ? ` – ${personnesText}` : ""}${reservation.nomClient ? ` – ${reservation.nomClient}` : ""}`
+        ? `${format(resDateObj, "d MMM HH:mm", { locale: fr })} – T${tableNum ?? reservation.tableNum}${personnesText ? ` – ${personnesText}` : ""}${reservation.nomClient ? ` – ${reservation.nomClient}` : ""}`
         : `${format(resDateObj, "HH:mm", { locale: fr })} – T${tableNum ?? reservation.tableNum}${personnesText ? ` – ${personnesText}` : ""}${reservation.nomClient ? ` – ${reservation.nomClient}` : ""}`
       }
     </li>
@@ -43,3 +43,4 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
 };
 
 export default CalendarReservationItem;
+
