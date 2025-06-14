@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -55,7 +54,7 @@ const ReservationCalendarView = ({
 
   const dateRange = getDateRange();
 
-  // Extrait les réservations pour une date donnée
+  // Extrait les réservations pour une date donnée et les trie par date croissante
   const getReservationsForDate = (date: Date) => {
     const dayTs = date.setHours(0, 0, 0, 0);
     const réservations: any[] = [];
@@ -67,7 +66,15 @@ const ReservationCalendarView = ({
         }
       });
     });
+    // TRI ici
+    réservations.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     return réservations;
+  };
+
+  // pour savoir si la date de réservation est dans le passé
+  const isPastDate = (date: Date) => {
+    const now = new Date();
+    return date.getTime() < now.setHours(0, 0, 0, 0); // comparé à aujourd'hui 00:00
   };
 
   // Pour simplification : Vue Mois / Semaine / Jour : grille par jour ; Vue An : grille 12 mois
@@ -94,6 +101,9 @@ const ReservationCalendarView = ({
                   }
                 });
               });
+              // TRI ici
+              resForMonth.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
               return (
                 <div key={monthLabel} className="bg-muted rounded-lg p-3">
                   <div className="font-semibold mb-2 text-sm">{monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}</div>
@@ -101,11 +111,17 @@ const ReservationCalendarView = ({
                     <div className="text-xs text-muted-foreground">Aucune réservation</div>
                   ) : (
                     <ul className="space-y-1">
-                      {resForMonth.map((res, idx) => (
-                        <li key={idx} className="text-xs">
-                          {format(new Date(res.date), "d MMM HH:mm", { locale: fr })} – Table {res.tableNum} – {res.nomClient}
-                        </li>
-                      ))}
+                      {resForMonth.map((res, idx) => {
+                        const resDateObj = new Date(res.date);
+                        return (
+                          <li
+                            key={idx}
+                            className={`text-xs ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
+                          >
+                            {format(resDateObj, "d MMM HH:mm", { locale: fr })} – Table {res.tableNum} – {res.nomClient}
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
@@ -129,11 +145,18 @@ const ReservationCalendarView = ({
                       <span className="text-xs text-muted-foreground">Libre</span>
                     ) : (
                       <ul className="space-y-1">
-                        {resForDay.map((res, idx) => (
-                          <li key={idx} className="text-xs bg-primary/10 rounded px-1 py-0.5">
-                            {format(new Date(res.date), "HH:mm", { locale: fr })} – T{res.tableNum}{res.nomClient ? ` – ${res.nomClient}` : ""}
-                          </li>
-                        ))}
+                        {resForDay.map((res, idx) => {
+                          const resDateObj = new Date(res.date);
+                          return (
+                            <li
+                              key={idx}
+                              className={`text-xs bg-primary/10 rounded px-1 py-0.5 ${isPastDate(resDateObj) ? "text-muted-foreground" : ""}`}
+                            >
+                              {format(resDateObj, "HH:mm", { locale: fr })} – T{res.tableNum}
+                              {res.nomClient ? ` – ${res.nomClient}` : ""}
+                            </li>
+                          );
+                        })}
                       </ul>
                     )}
                   </div>
