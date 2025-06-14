@@ -4,6 +4,98 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+// --- Helpers CSV ---
+function arrayToCsv<T>(arr: T[], columns: (keyof T)[]): string {
+  const escape = (v: any) =>
+    typeof v === "string"
+      ? '"' + v.replace(/"/g, '""') + '"'
+      : v === undefined || v === null
+      ? ""
+      : v instanceof Date
+        ? v.toISOString()
+        : v.toString();
+
+  const header = columns.join(",");
+  const rows = arr.map(obj =>
+    columns.map(col => escape(obj[col])).join(",")
+  );
+  return [header, ...rows].join("\r\n");
+}
+
+// CSV simple parser
+function csvToArray<T>(csv: string, columns: string[]): T[] {
+  const lines = csv.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  // skip header, parse lines
+  const res: T[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    let line = lines[i];
+    if (line.trim() === "") continue;
+    const values: string[] = [];
+    let cur = "", inQuotes = false;
+    for (let j = 0; j < line.length; j++) {
+      if (line[j] === '"' && (j === 0 || line[j - 1] !== "\\")) {
+        inQuotes = !inQuotes;
+      } else if (line[j] === "," && !inQuotes) {
+        values.push(cur.replace(/^"|"$/g, "").replace(/""/g, '"'));
+        cur = "";
+      } else {
+        cur += line[j];
+      }
+    }
+    values.push(cur.replace(/^"|"$/g, "").replace(/""/g, '"'));
+    const obj: any = {};
+    for (let k = 0; k < columns.length; k++) {
+      obj[columns[k]] = values[k] ?? null;
+    }
+    res.push(obj);
+  }
+  return res;
+}
+
+// Champs CSV : les plus courants et typés pour garder la compatibilité
+const SallesColumns = ["id", "nom"];
+const TablesColumns = [
+  "id", "numero", "forme", "nombrePersonnes", "salleId", "position.x", "position.y", "rotation"
+];
+const ReservationsColumns = [
+  "id", "tableId", "date", "heure", "nombrePersonnes", "nomClient"
+];
+
+// Pour les objets position/petits découpages
+function tableToRow(table: any) {
+  return {
+    ...table,
+    "position.x": table.position?.x ?? "",
+    "position.y": table.position?.y ?? "",
+    rotation: table.rotation ?? "",
+  };
+}
+
+function rowToTable(row: any) {
+  return {
+    id: row.id,
+    numero: Number(row.numero),
+    forme: row.forme,
+    nombrePersonnes: Number(row.nombrePersonnes),
+    salleId: row.salleId,
+    position: { x: Number(row["position.x"]), y: Number(row["position.y"]) },
+    rotation: row.rotation ? Number(row.rotation) : undefined,
+  };
+}
+
+function reservationRowToObj(row: any) {
+  return {
+    ...row,
+    nombrePersonnes: Number(row.nombrePersonnes),
+    date: new Date(row.date),
+    id: row.id,
+    tableId: row.tableId,
+    heure: row.heure,
+    nomClient: row.nomClient,
+  };
+}
+
 const ImportExport = () => {
   const {
     salles,
@@ -18,10 +110,12 @@ const ImportExport = () => {
   const tableInputRef = useRef<HTMLInputElement>(null);
   const reservationInputRef = useRef<HTMLInputElement>(null);
 
-  // Helper: Télécharger en JSON
-  const downloadJSON = (data: any, filename: string) => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
+  // Télécharger en CSV
+  const downloadCSV = (data: any[], columns: string[], filename: string, rowMapFn?: (d: any) => any) => {
+    const mapped = rowMapFn ? data.map(rowMapFn) : data;
+    const csv = arrayToCsv(mapped, columns);
+    const blob = new Blob([csv], {
+      type: "text/csv",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -31,20 +125,26 @@ const ImportExport = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Handlers d'import
-  const handleImport = (
+  // Import CSV
+  const handleImportCsv = (
     ref: React.RefObject<HTMLInputElement>,
-    importFunc: (items: any[]) => void
+    columns: string[],
+    importFunc: (items: any[]) => void,
+    rowMapFn?: (row: any) => any,
   ) => {
     if (ref.current?.files && ref.current.files.length > 0) {
       const file = ref.current.files[0];
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const data = JSON.parse(e.target?.result as string);
-          importFunc(Array.isArray(data) ? data : []);
-        } catch {
-          alert("Format du fichier invalide !");
+          const csv = e.target?.result as string;
+          let array = csvToArray<any>(csv, columns);
+          if (rowMapFn) {
+            array = array.map(rowMapFn);
+          }
+          importFunc(array);
+        } catch (e) {
+          alert("Format du fichier CSV invalide !");
         }
       };
       reader.readAsText(file);
@@ -54,7 +154,7 @@ const ImportExport = () => {
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold mb-4">Import / Export</h1>
+      <h1 className="text-2xl font-bold mb-4">Import / Export (format CSV)</h1>
 
       {/* Salles */}
       <Card className="p-4 space-y-2">
@@ -63,7 +163,7 @@ const ImportExport = () => {
           <div className="space-x-2">
             <Button
               variant="outline"
-              onClick={() => downloadJSON(salles, "salles.json")}
+              onClick={() => downloadCSV(salles, SallesColumns, "salles.csv")}
             >
               Exporter
             </Button>
@@ -75,11 +175,11 @@ const ImportExport = () => {
             </Button>
             <input
               type="file"
-              accept=".json"
+              accept=".csv"
               ref={salleInputRef}
               className="hidden"
               onChange={() =>
-                handleImport(salleInputRef, importSalles!)
+                handleImportCsv(salleInputRef, SallesColumns, importSalles)
               }
             />
           </div>
@@ -93,7 +193,7 @@ const ImportExport = () => {
           <div className="space-x-2">
             <Button
               variant="outline"
-              onClick={() => downloadJSON(tables, "tables.json")}
+              onClick={() => downloadCSV(tables, TablesColumns, "tables.csv", tableToRow)}
             >
               Exporter
             </Button>
@@ -105,11 +205,11 @@ const ImportExport = () => {
             </Button>
             <input
               type="file"
-              accept=".json"
+              accept=".csv"
               ref={tableInputRef}
               className="hidden"
               onChange={() =>
-                handleImport(tableInputRef, importTables!)
+                handleImportCsv(tableInputRef, TablesColumns, importTables, rowToTable)
               }
             />
           </div>
@@ -124,7 +224,7 @@ const ImportExport = () => {
             <Button
               variant="outline"
               onClick={() =>
-                downloadJSON(reservations, "reservations.json")
+                downloadCSV(reservations, ReservationsColumns, "reservations.csv")
               }
             >
               Exporter
@@ -137,11 +237,11 @@ const ImportExport = () => {
             </Button>
             <input
               type="file"
-              accept=".json"
+              accept=".csv"
               ref={reservationInputRef}
               className="hidden"
               onChange={() =>
-                handleImport(reservationInputRef, importReservations!)
+                handleImportCsv(reservationInputRef, ReservationsColumns, importReservations, reservationRowToObj)
               }
             />
           </div>
