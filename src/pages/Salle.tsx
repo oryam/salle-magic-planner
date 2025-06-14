@@ -1,8 +1,7 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, ArrowRight, Calendar } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useRestaurant } from '@/context/RestaurantContext';
 import DraggableTable from '@/components/DraggableTable';
 import TableIcon from '@/components/TableIcon';
@@ -17,6 +16,7 @@ const Salle = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [period, setPeriod] = useState<PeriodType>('jour');
   const [draggedTable, setDraggedTable] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const getCurrentPeriodStart = () => {
     switch (period) {
@@ -146,67 +146,89 @@ const Salle = () => {
       </div>
 
       <div className="flex">
-        <div className="w-80 bg-card border-r border-border p-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tables disponibles</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {tablesInSidebar.map(table => (
-                  <div
-                    key={table.id}
-                    className="flex items-center justify-between p-3 bg-muted rounded-lg cursor-move select-none"
-                    draggable
-                    onDragStart={(e) => handleSidebarDragStart(e, table.id)}
-                    onTouchStart={() => handleSidebarTouchStart(table.id)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <TableIcon forme={table.forme} />
-                      <div>
-                        <span className="font-medium">Table {table.numero}</span>
-                        <div className="text-sm text-muted-foreground">
-                          {table.nombrePersonnes} personnes
+        {/* Panneau latéral avec bouton de basculement */}
+        <div className={`transition-all duration-300 bg-card border-r border-border ${
+          sidebarCollapsed ? 'w-12' : 'w-80'
+        }`}>
+          <div className="p-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="w-full mb-4"
+            >
+              {sidebarCollapsed ? (
+                <PanelLeftOpen className="h-4 w-4" />
+              ) : (
+                <PanelLeftClose className="h-4 w-4" />
+              )}
+            </Button>
+
+            {!sidebarCollapsed && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Tables disponibles</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {tablesInSidebar.map(table => (
+                        <div
+                          key={table.id}
+                          className="flex items-center justify-between p-3 bg-muted rounded-lg cursor-move select-none"
+                          draggable
+                          onDragStart={(e) => handleSidebarDragStart(e, table.id)}
+                          onTouchStart={() => handleSidebarTouchStart(table.id)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <TableIcon forme={table.forme} />
+                            <div>
+                              <span className="font-medium">Table {table.numero}</span>
+                              <div className="text-sm text-muted-foreground">
+                                {table.nombrePersonnes} personnes
+                              </div>
+                            </div>
+                          </div>
+                          <div className={`w-3 h-3 rounded-full ${
+                            table.statut === 'reservee' ? 'bg-green-500' :
+                            table.statut === 'attente' ? 'bg-yellow-500' : 'bg-gray-500'
+                          }`} />
                         </div>
+                      ))}
+                      
+                      {tablesInSidebar.length === 0 && (
+                        <p className="text-muted-foreground text-center py-4">
+                          Toutes les tables sont placées
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle>Légende</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Réservée</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                        <span className="text-sm">En attente</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
+                        <span className="text-sm">Libre</span>
                       </div>
                     </div>
-                    <div className={`w-3 h-3 rounded-full ${
-                      table.statut === 'reservee' ? 'bg-green-500' :
-                      table.statut === 'attente' ? 'bg-yellow-500' : 'bg-gray-500'
-                    }`} />
-                  </div>
-                ))}
-                
-                {tablesInSidebar.length === 0 && (
-                  <p className="text-muted-foreground text-center py-4">
-                    Toutes les tables sont placées
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle>Légende</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">Réservée</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-                  <span className="text-sm">En attente</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
-                  <span className="text-sm">Libre</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="flex-1 p-4">
