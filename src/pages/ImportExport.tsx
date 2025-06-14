@@ -5,6 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 // --- Helpers CSV ---
+function formatDateFr(date: Date | string | null | undefined) {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+function parseDateFr(str: string) {
+  // attend "DD/MM/YYYY"
+  if (!str) return null;
+  const [day, month, year] = str.split("/");
+  if (!day || !month || !year) return null;
+  const d = new Date(Number(year), Number(month) - 1, Number(day));
+  if (isNaN(d.getTime())) return null;
+  return d;
+}
+
 function arrayToCsv<T>(arr: T[], columns: (keyof T)[]): string {
   const escape = (v: any) =>
     typeof v === "string"
@@ -12,7 +31,7 @@ function arrayToCsv<T>(arr: T[], columns: (keyof T)[]): string {
       : v === undefined || v === null
       ? ""
       : v instanceof Date
-        ? v.toISOString()
+        ? formatDateFr(v)
         : v.toString();
 
   const header = columns.join(",");
@@ -26,7 +45,6 @@ function arrayToCsv<T>(arr: T[], columns: (keyof T)[]): string {
 function csvToArray<T>(csv: string, columns: string[]): T[] {
   const lines = csv.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
-  // skip header, parse lines
   const res: T[] = [];
   for (let i = 1; i < lines.length; i++) {
     let line = lines[i];
@@ -53,7 +71,7 @@ function csvToArray<T>(csv: string, columns: string[]): T[] {
   return res;
 }
 
-// Champs CSV : les plus courants et typés pour garder la compatibilité
+// Champs CSV : les plus courants et typés pour garder la compatibilité
 const SallesColumns = ["id", "nom"];
 const TablesColumns = [
   "id", "numero", "forme", "nombrePersonnes", "salleId", "position.x", "position.y", "rotation"
@@ -88,7 +106,7 @@ function reservationRowToObj(row: any) {
   return {
     ...row,
     nombrePersonnes: Number(row.nombrePersonnes),
-    date: new Date(row.date),
+    date: parseDateFr(row.date),
     id: row.id,
     tableId: row.tableId,
     heure: row.heure,
@@ -110,12 +128,15 @@ const ImportExport = () => {
   const tableInputRef = useRef<HTMLInputElement>(null);
   const reservationInputRef = useRef<HTMLInputElement>(null);
 
-  // Télécharger en CSV
+  // Télécharger en CSV, avec BOM UTF-8 & bonne gestion date
   const downloadCSV = (data: any[], columns: string[], filename: string, rowMapFn?: (d: any) => any) => {
+    // Attention aux dates (ex pour Réservations)
     const mapped = rowMapFn ? data.map(rowMapFn) : data;
     const csv = arrayToCsv(mapped, columns);
-    const blob = new Blob([csv], {
-      type: "text/csv",
+    // Ajout du BOM UTF-8
+    const csvWithBom = "\uFEFF" + csv;
+    const blob = new Blob([csvWithBom], {
+      type: "text/csv;charset=utf-8;",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -147,7 +168,7 @@ const ImportExport = () => {
           alert("Format du fichier CSV invalide !");
         }
       };
-      reader.readAsText(file);
+      reader.readAsText(file, "utf-8");
       ref.current.value = "";
     }
   };
@@ -224,7 +245,10 @@ const ImportExport = () => {
             <Button
               variant="outline"
               onClick={() =>
-                downloadCSV(reservations, ReservationsColumns, "reservations.csv")
+                downloadCSV(reservations, ReservationsColumns, "reservations.csv", (r) => ({
+                  ...r,
+                  date: formatDateFr(r.date), // format date export
+                }))
               }
             >
               Exporter
@@ -241,7 +265,12 @@ const ImportExport = () => {
               ref={reservationInputRef}
               className="hidden"
               onChange={() =>
-                handleImportCsv(reservationInputRef, ReservationsColumns, importReservations, reservationRowToObj)
+                handleImportCsv(
+                  reservationInputRef,
+                  ReservationsColumns,
+                  importReservations,
+                  reservationRowToObj // gère format date FR
+                )
               }
             />
           </div>
@@ -252,3 +281,4 @@ const ImportExport = () => {
 };
 
 export default ImportExport;
+
