@@ -9,6 +9,8 @@ import { useRestaurant } from '@/context/RestaurantContext';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import TableIcon from './TableIcon';
+import TableSelector from './TableSelector';
+import ReservationDetailsForm from './ReservationDetailsForm';
 
 interface ReservationFormProps {
   currentDate?: Date;
@@ -136,90 +138,28 @@ const ReservationForm = ({ currentDate = new Date(), period = 'jour' }: Reservat
         </DialogHeader>
         
         <div className="space-y-6">
-          <div>
-            <Label>Toutes les tables</Label>
-            <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-2">
-              {tables.map(table => {
-                const statut = getTableStatusForDate(table.id);
-                const tableReservations = getTableReservationsForDate(table.id);
-                
-                return (
-                  <div
-                    key={table.id}
-                    className={`flex items-center justify-between p-3 rounded cursor-pointer border ${
-                      selectedTableId === table.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-                    }`}
-                    onClick={() => setSelectedTableId(table.id)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <TableIcon forme={table.forme} />
-                      <span className="font-medium">Table {table.numero}</span>
-                      <span className="text-sm text-muted-foreground">{table.nombrePersonnes} personnes</span>
-                      <span className={`text-sm px-2 py-1 rounded ${getStatusBadgeColor(statut)}`}>
-                        {getStatusText(statut)}
-                      </span>
-                    </div>
-                    {tableReservations.length > 0 && (
-                      <div className="text-sm text-muted-foreground">
-                        {tableReservations.length} réservation(s)
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="heure">Heure</Label>
-                <Input
-                  id="heure"
-                  type="time"
-                  value={heure}
-                  onChange={(e) => setHeure(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="nombrePersonnes">Nombre de personnes</Label>
-              <Input
-                id="nombrePersonnes"
-                type="number"
-                value={nombrePersonnes}
-                onChange={(e) => setNombrePersonnes(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="nomClient">Nom du client</Label>
-              <Input
-                id="nomClient"
-                value={nomClient}
-                onChange={(e) => setNomClient(e.target.value)}
-                placeholder="Optionnel"
-              />
-            </div>
-            
-            <Button type="submit" className="w-full" disabled={!selectedTableId}>
-              Confirmer la réservation
-            </Button>
-          </form>
+          <TableSelector
+            tables={tables}
+            date={date}
+            selectedTableId={selectedTableId}
+            getTableStatusForDate={getTableStatusForDate}
+            getStatusBadgeColor={getStatusBadgeColor}
+            getStatusText={getStatusText}
+            getTableReservationsForDate={getTableReservationsForDate}
+            onSelect={setSelectedTableId}
+          />
+          <ReservationDetailsForm
+            date={date}
+            heure={heure}
+            nombrePersonnes={nombrePersonnes}
+            nomClient={nomClient}
+            onDateChange={setDate}
+            onHeureChange={setHeure}
+            onNombrePersonnesChange={setNombrePersonnes}
+            onNomClientChange={setNomClient}
+            onSubmit={handleSubmit}
+            disabled={!selectedTableId}
+          />
         </div>
       </DialogContent>
     </Dialog>
