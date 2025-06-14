@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { 
   Table, Reservation, TableWithReservations, 
@@ -20,6 +19,9 @@ interface RestaurantContextType {
   deleteReservation: (id: string) => void;
   getTablesWithReservations: (date?: Date, period?: string, salleId?: SalleId) => TableWithReservations[];
   getTableStatus: (tableId: string, date: Date) => TableStatus;
+  importSalles: (salles: Salle[]) => void;
+  importTables: (tables: Table[]) => void;
+  importReservations: (reservations: Reservation[]) => void;
 }
 
 const RestaurantContext = createContext<RestaurantContextType | undefined>(undefined);
@@ -112,6 +114,7 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     setTables(prev => prev.filter(table => table.salleId !== id));
   };
 
+  // GESTION DES TABLES
   const addTable = (tableData: Omit<Table, 'id'>) => {
     const newTable: Table = {
       ...tableData,
@@ -131,6 +134,7 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     setReservations(prev => prev.filter(res => res.tableId !== id));
   };
 
+  // GESTION DES RESERVATIONS
   const addReservation = (reservationData: Omit<Reservation, 'id'>) => {
     const newReservation: Reservation = {
       ...reservationData,
@@ -147,6 +151,21 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteReservation = (id: string) => {
     setReservations(prev => prev.filter(res => res.id !== id));
+  };
+
+  // GESTION IMPORT/EXPORT
+  const importSalles = (sallesToImport: Salle[]) => {
+    setSalles(sallesToImport);
+  };
+  const importTables = (tablesToImport: Table[]) => {
+    setTables(tablesToImport);
+  };
+  const importReservations = (reservationsToImport: any[]) => {
+    const parsedReservations = reservationsToImport.map(res => ({
+      ...res,
+      date: new Date(res.date), // Convertir la date en objet Date
+    }));
+    setReservations(parsedReservations);
   };
 
   const getTableStatus = (tableId: string, date: Date): TableStatus => {
@@ -229,7 +248,10 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       updateReservation,
       deleteReservation,
       getTablesWithReservations,
-      getTableStatus
+      getTableStatus,
+      importSalles,
+      importTables,
+      importReservations
     }}>
       {children}
     </RestaurantContext.Provider>
