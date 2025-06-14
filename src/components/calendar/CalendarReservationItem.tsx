@@ -23,9 +23,9 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
 }) => {
   const resDateObj = new Date(reservation.date);
 
-  // Formatage pour le nombre de personnes
+  // Formatage pour le nombre de personnes sous forme "4p" ou "1p"
   const personnesText = reservation.nombrePersonnes
-    ? `${reservation.nombrePersonnes} ${reservation.nombrePersonnes > 1 ? "pers." : "pers."}`
+    ? `${reservation.nombrePersonnes}p`
     : "";
 
   return (
@@ -43,4 +43,3 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
 };
 
 export default CalendarReservationItem;
-
