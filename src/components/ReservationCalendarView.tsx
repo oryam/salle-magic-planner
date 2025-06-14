@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -128,12 +127,17 @@ const ReservationCalendarView = ({
               const hasReservations = resForMonth.length > 0;
               const { reservationCount, totalPersons } = getAggregateForMonth(month);
 
+              // Couleur de fond contrastée :
+              // - vive si réservation, très claire sinon
+              const bgClass = hasReservations
+                ? "bg-primary/60"
+                : "bg-muted/95";
+
               // Gestion du mode d'affichage simplifié / détaillé
               return (
                 <div
                   key={monthLabel}
-                  className={`rounded-lg p-3 transition-all
-                    ${hasReservations ? "bg-muted" : "bg-muted/60"}`}
+                  className={`rounded-lg p-3 transition-all ${bgClass}`}
                 >
                   <div className="font-semibold mb-2 text-sm flex items-center gap-2">
                     {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}
@@ -236,4 +240,3 @@ const ReservationCalendarView = ({
 };
 
 export default ReservationCalendarView;
-
