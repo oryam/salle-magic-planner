@@ -15,6 +15,7 @@ import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon } from 'lucide-react'; // s'assure d'importer le bon icône
 import ReservationCalendarView from '@/components/ReservationCalendarView';
 import SalleSelector from '@/components/SalleSelector';
+import { Search } from 'lucide-react'; // Ajout pour l'icône Loupe
 
 type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
 
@@ -28,7 +29,8 @@ const Reservations = () => {
   const [newReservationDate, setNewReservationDate] = useState<Date | null>(null);
   const [newReservationTableId, setNewReservationTableId] = useState<string | null>(null);
 
-  const [selectedSalleId, setSelectedSalleId] = useState<string>(salles[0]?.id || "");
+  const [selectedSalleId, setSelectedSalleId] = useState<string>(""); // valeur "" = toutes les salles
+  const [searchTerm, setSearchTerm] = useState<string>(""); // état recherche
 
   const getCurrentPeriodStart = () => {
     switch (period) {
@@ -73,7 +75,21 @@ const Reservations = () => {
     return format(date, 'EEE dd/MM HH:mm', { locale: fr });
   };
 
+  // tables filtrées par salle sélectionnée
   const tablesWithReservations = getTablesWithReservations(getCurrentPeriodStart(), period, selectedSalleId);
+
+  // Filtrage des tables/réservations selon la recherche
+  const filteredTablesWithReservations = tablesWithReservations.map(table => {
+    // si pas de recherche, retour direct
+    if (!searchTerm.trim()) return table;
+
+    // filtre les réservations de la table selon le nom client (insensible à la casse)
+    const filteredReservations = table.reservations.filter(res =>
+      res.nomClient?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    // on ne garde la table que si elle a des réservations correspondantes ou s'il n'y a pas de recherche
+    return { ...table, reservations: filteredReservations };
+  }).filter(table => table.reservations.length > 0 || !searchTerm.trim());
   
   const stats = {
     tablesLibres: tablesWithReservations.filter(t => t.reservations.length === 0).length,
@@ -150,15 +166,31 @@ const Reservations = () => {
             salleId={selectedSalleId}
           />
         </div>
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
           <SalleSelector
             salles={salles}
             selectedSalleId={selectedSalleId}
             onSalleChange={setSelectedSalleId}
             className="w-56"
+            showAllOption // active l'option "Tout voir"
           />
+          {/* Recherche nom client */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                <Search className="h-4 w-4" />
+              </span>
+              <input
+                type="text"
+                placeholder="Rechercher un client"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="pl-8 pr-3 py-2 border border-input rounded-md w-full text-sm bg-background"
+              />
+            </div>
+          </div>
         </div>
-
+        
         {/* Contrôles de période */}
         <Card className="mb-4 sm:mb-6">
           <CardContent className="p-3 sm:p-6">
@@ -243,7 +275,7 @@ const Reservations = () => {
         {/* Vue Liste ou Vue Calendrier */}
         {calendarView ? (
           <ReservationCalendarView
-            tablesWithReservations={tablesWithReservations}
+            tablesWithReservations={filteredTablesWithReservations}
             period={period}
             currentDate={currentDate}
             onReservationClick={handleReservationClick}
@@ -258,7 +290,7 @@ const Reservations = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 sm:space-y-3">
-                  {tablesWithReservations.map(table => (
+                  {filteredTablesWithReservations.map(table => (
                     <div
                       key={table.id}
                       className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 gap-2 sm:gap-0"
@@ -328,9 +360,13 @@ const Reservations = () => {
                     </div>
                   ))}
 
-                  {tablesWithReservations.length === 0 && (
+                  {filteredTablesWithReservations.length === 0 && (
                     <div className="text-center py-8">
-                      <p className="text-muted-foreground text-xs sm:text-base">Aucune table configurée</p>
+                      <p className="text-muted-foreground text-xs sm:text-base">
+                        {searchTerm
+                          ? "Aucune réservation trouvée"
+                          : "Aucune table configurée"}
+                      </p>
                     </div>
                   )}
                 </div>
