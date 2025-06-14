@@ -1,3 +1,4 @@
+
 import React from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -27,10 +28,6 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
     ? `${reservation.nombrePersonnes}p`
     : "";
 
-  // Jour abrégé en 2 lettres pour vue Année sans le point final (ex : "lu" au lieu de "lu.")
-  const shortDay =
-    showDate ? `${format(resDateObj, "EE", { locale: fr })} ` : "";
-
   return (
     <li
       className={`text-xs bg-primary/10 hover:bg-primary/20 rounded px-1 py-0.5 cursor-pointer transition-colors duration-100 ${isPast ? "text-muted-foreground" : ""}`}
@@ -38,7 +35,7 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
       title="Modifier la réservation"
     >
       {showDate
-        ? `${shortDay}${format(resDateObj, "d MMM HH:mm", { locale: fr })} – T${tableNum ?? reservation.tableNum}${personnesText ? ` – ${personnesText}` : ""}${reservation.nomClient ? ` – ${reservation.nomClient}` : ""}`
+        ? `${format(resDateObj, "HH:mm", { locale: fr })} – T${tableNum ?? reservation.tableNum}${personnesText ? ` – ${personnesText}` : ""}${reservation.nomClient ? ` – ${reservation.nomClient}` : ""}`
         : `${format(resDateObj, "HH:mm", { locale: fr })} – T${tableNum ?? reservation.tableNum}${personnesText ? ` – ${personnesText}` : ""}${reservation.nomClient ? ` – ${reservation.nomClient}` : ""}`
       }
     </li>
@@ -46,3 +43,4 @@ const CalendarReservationItem: React.FC<CalendarReservationItemProps> = ({
 };
 
 export default CalendarReservationItem;
+
