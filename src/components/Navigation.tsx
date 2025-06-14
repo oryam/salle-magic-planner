@@ -19,8 +19,8 @@ const Navigation = () => {
     return (
       <nav className="bg-white border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold">Salle Magic Planner</h1>
           <SidebarTrigger />
+          <h1 className="text-lg font-semibold">Salle Magic Planner</h1>
         </div>
       </nav>
     );
