@@ -2,7 +2,8 @@
 import React from "react";
 import {
   ResponsiveContainer,
-  LineChart,
+  ComposedChart,
+  Bar,
   Line,
   XAxis,
   YAxis,
@@ -11,14 +12,13 @@ import {
   Legend,
 } from "recharts";
 
-// Adapter pour supporter points vides en début/fin
 type StatChartDatum = {
   date: Date;
   reservations: number | null;
   personnes: number | null;
 };
 
-type ReservationLineChartProps = {
+type CombinedReservationChartProps = {
   data: StatChartDatum[];
   period?: string;
 };
@@ -37,16 +37,13 @@ const formatTick = (date: Date, period?: string) => {
     : String(date);
 };
 
-const ReservationLineChart = ({
-  data,
-  period,
-}: ReservationLineChartProps) => {
-  // Enlever les slots vides (début/fin)
+const CombinedReservationChart = ({ data, period }: CombinedReservationChartProps) => {
+  // Ignore slots vides
   const filteredData = data.filter(d => d.reservations !== null && d.personnes !== null);
 
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <LineChart data={filteredData}>
+      <ComposedChart data={filteredData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="date"
@@ -67,15 +64,21 @@ const ReservationLineChart = ({
               : String(val)
           }
           formatter={(value: any, name: string) =>
-            [
-              value,
-              name === "reservations"
-                ? "Réservations"
-                : name,
-            ] as [string, string]
+            name === "personnes"
+              ? [value, "Personnes"]
+              : name === "reservations"
+                ? [value, "Réservations"]
+                : [value, name]
           }
         />
         <Legend />
+        <Bar
+          dataKey="personnes"
+          fill="#60a5fa"
+          name="Personnes"
+          barSize={14}
+          radius={[2, 2, 0, 0]}
+        />
         <Line
           type="monotone"
           dataKey="reservations"
@@ -86,9 +89,9 @@ const ReservationLineChart = ({
           connectNulls={false}
           isAnimationActive={false}
         />
-      </LineChart>
+      </ComposedChart>
     </ResponsiveContainer>
   );
 };
 
-export default ReservationLineChart;
+export default CombinedReservationChart;

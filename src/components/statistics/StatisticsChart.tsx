@@ -44,47 +44,52 @@ const formatTick = (date: Date, period?: string) => {
 const StatisticsChart = ({
   data,
   period,
-}: StatisticsChartProps) => (
-  <ResponsiveContainer width="100%" height={260}>
-    <BarChart data={data}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis
-        dataKey="date"
-        tickFormatter={(date) => formatTick(date, period)}
-        minTickGap={10}
-        tick={{ fontSize: 12, fill: "#64748b" }}
-      />
-      <YAxis
-        allowDecimals={false}
-        tick={{ fontSize: 12, fill: "#64748b" }}
-      />
-      <Tooltip
-        labelFormatter={val =>
-          val instanceof Date
-            ? (period === "annee" || period === "12mois"
-                ? val.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
-                : val.toLocaleDateString("fr-FR"))
-            : String(val)
-        }
-        formatter={(value: any, name: string) =>
-          [
-            value,
-            name === "personnes"
-              ? "Personnes"
-              : name,
-          ] as [string, string]
-        }
-      />
-      <Legend />
-      <Bar
-        dataKey="personnes"
-        fill={COLORS[0]}
-        name="Personnes"
-        barSize={18}
-        radius={[2, 2, 0, 0]}
-      />
-    </BarChart>
-  </ResponsiveContainer>
-);
+}: StatisticsChartProps) => {
+  // Filtrer pour ignorer slots avec valeurs nulles (début/fin)
+  const filteredData = data.filter(d => d.reservations !== null && d.personnes !== null);
+
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={filteredData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis
+          dataKey="date"
+          tickFormatter={(date) => formatTick(date, period)}
+          minTickGap={10}
+          tick={{ fontSize: 12, fill: "#64748b" }}
+        />
+        <YAxis
+          allowDecimals={false}
+          tick={{ fontSize: 12, fill: "#64748b" }}
+        />
+        <Tooltip
+          labelFormatter={val =>
+            val instanceof Date
+              ? (period === "annee" || period === "12mois"
+                  ? val.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+                  : val.toLocaleDateString("fr-FR"))
+              : String(val)
+          }
+          formatter={(value: any, name: string) =>
+            [
+              value,
+              name === "personnes"
+                ? "Personnes"
+                : name,
+            ] as [string, string]
+          }
+        />
+        <Legend />
+        <Bar
+          dataKey="personnes"
+          fill={COLORS[0]}
+          name="Personnes"
+          barSize={18}
+          radius={[2, 2, 0, 0]}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
 
 export default StatisticsChart;

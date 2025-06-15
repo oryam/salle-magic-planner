@@ -14,6 +14,7 @@ import ReservationLineChart from "@/components/statistics/ReservationLineChart";
 import ReservationHeatmap from "@/components/statistics/ReservationHeatmap";
 import ReservationTable from "@/components/statistics/ReservationTable";
 import FiltersBar from "@/components/FiltersBar";
+import CombinedReservationChart from "@/components/statistics/CombinedReservationChart";
 
 const TIME_FILTERS = [
   { key: "all", label: "Toutes" },
@@ -183,6 +184,8 @@ const Statistiques = () => {
     .filter(t => selectedSalleIds.length === 0 || selectedSalleIds.includes(t.salleId))
     .map(t => ({ value: t.id, label: `Table ${t.numero}` }));
 
+  // ------ Nettoyage des slots vides pour les graphiques --------
+  // Nouvelle structure: on produit d'abord la data avec slots vides pour le heatmap, mais pour les charts, on nettoie les slots vides :
   const chartData = useMemo(() => {
     let resultArr = [];
     if (period === "annee" || period === "12mois") {
@@ -207,21 +210,7 @@ const Statistiques = () => {
           monthMap.get(key)!.personnes += res.nombrePersonnes;
         }
       });
-      // Ajout slots début/fin (points "vides")
-      // Premier et dernier mois ±1
-      if (months.length > 0) {
-        const firstMonth = new Date(months[0].date);
-        firstMonth.setMonth(firstMonth.getMonth() - 1);
-        const lastMonth = new Date(months[months.length - 1].date);
-        lastMonth.setMonth(lastMonth.getMonth() + 1);
-        resultArr = [
-          { date: new Date(firstMonth), reservations: null, personnes: null },
-          ...months,
-          { date: new Date(lastMonth), reservations: null, personnes: null },
-        ];
-      } else {
-        resultArr = months;
-      }
+      resultArr = months;
     } else {
       const days: {
         [iso: string]: { date: Date; reservations: number; personnes: number }
@@ -239,19 +228,7 @@ const Statistiques = () => {
           days[resDayKey].personnes += res.nombrePersonnes;
         }
       });
-      // Ajout slots début/fin (points "vides")
-      const dayArr = Object.values(days);
-      if (dayArr.length > 0) {
-        const firstDay = new Date(dayArr[0].date); firstDay.setDate(firstDay.getDate() - 1);
-        const lastDay = new Date(dayArr[dayArr.length - 1].date); lastDay.setDate(lastDay.getDate() + 1);
-        resultArr = [
-          { date: new Date(firstDay), reservations: null, personnes: null },
-          ...dayArr,
-          { date: new Date(lastDay), reservations: null, personnes: null },
-        ];
-      } else {
-        resultArr = dayArr;
-      }
+      resultArr = Object.values(days);
     }
     return resultArr;
   }, [filteredReservations, startDate, endDate, period]);
@@ -532,6 +509,21 @@ const Statistiques = () => {
           <div className="w-full overflow-x-auto">
             <div className="min-w-[350px]">
               <ReservationLineChart data={chartData} period={period} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      {/* NOUVEAU GRAPHIQUE MIXTE BARRES + COURBE */}
+      <Card className="mb-5">
+        <CardHeader>
+          <CardTitle className="text-base sm:text-lg">
+            Nb de personnes (barres) & Nb de réservations (ligne)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-6">
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-[350px]">
+              <CombinedReservationChart data={chartData} period={period} />
             </div>
           </div>
         </CardContent>
