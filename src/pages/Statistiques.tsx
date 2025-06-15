@@ -52,9 +52,13 @@ const Statistiques = () => {
   const { salles, tables, reservations } = useRestaurant();
 
   // États de filtre
+  
   const [period, setPeriod] = useState<PeriodType>("mois");
   const [date, setDate] = useState<Date>(new Date());
-  const [customRange, setCustomRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: Date | null });
+
+  // FIX: Properly initialize customRange with start: null, end: null
+  const [customRange, setCustomRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null });
+
   const [selectedSalleIds, setSelectedSalleIds] = useState<string[]>([]);
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(["all"]);
@@ -233,6 +237,7 @@ const Statistiques = () => {
     return resultArr;
   }, [filteredReservations, startDate, endDate, period]);
 
+  // MOVE totalReservations and totalPersonnes here ONLY ONCE
   const totalReservations = filteredReservations.length;
   const totalPersonnes = filteredReservations.reduce((sum, r) => sum + r.nombrePersonnes, 0);
 
@@ -321,9 +326,6 @@ const Statistiques = () => {
       return arr;
     }
   }, [filteredReservations, daysList, slots, period]);
-
-  const totalReservations = filteredReservations.length;
-  const totalPersonnes = filteredReservations.reduce((sum, r) => sum + r.nombrePersonnes, 0);
 
   return (
     <div className="px-2 sm:px-5 max-w-full w-full">
