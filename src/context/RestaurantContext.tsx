@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { 
   Table, Reservation, TableWithReservations, 
@@ -34,9 +33,9 @@ interface RestaurantContextType {
   deleteReservation: (id: string) => void;
   getTablesWithReservations: (date?: Date, period?: string, salleId?: SalleId) => TableWithReservations[];
   getTableStatus: (tableId: string, date: Date) => TableStatus;
-  importSalles: (items: Salle[]) => void;
-  importTables: (items: Table[]) => void;
-  importReservations: (items: Reservation[]) => void;
+  importSalles: (items: Salle[], replace?: boolean) => void;
+  importTables: (items: Table[], replace?: boolean) => void;
+  importReservations: (items: Reservation[], replace?: boolean) => void;
   resetAllData: () => void;
 }
 
@@ -101,20 +100,35 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     saveToStorage(STORAGE_KEYS.RESERVATIONS, reservations);
   }, [reservations]);
 
-  // Fonctions d'import
-  const importSalles = (newSalles: Salle[]) => {
-    setSalles([...newSalles]);
+  // Fonctions d'import modifiées pour supporter le mode remplacement
+  const importSalles = (newSalles: Salle[], replace: boolean = false) => {
+    if (replace) {
+      setSalles([...newSalles]);
+    } else {
+      setSalles(prev => [...prev, ...newSalles]);
+    }
   };
-  const importTables = (newTables: Table[]) => {
-    setTables([...newTables]);
+
+  const importTables = (newTables: Table[], replace: boolean = false) => {
+    if (replace) {
+      setTables([...newTables]);
+    } else {
+      setTables(prev => [...prev, ...newTables]);
+    }
   };
-  const importReservations = (newReservations: Reservation[]) => {
+
+  const importReservations = (newReservations: Reservation[], replace: boolean = false) => {
     // On s'assure que les dates sont bien désérialisées
     const validatedReservations = newReservations.map((r) => ({
       ...r,
       date: typeof r.date === "string" ? new Date(r.date) : r.date,
     }));
-    setReservations([...validatedReservations]);
+    
+    if (replace) {
+      setReservations([...validatedReservations]);
+    } else {
+      setReservations(prev => [...prev, ...validatedReservations]);
+    }
   };
 
   // GESTION DES SALLES

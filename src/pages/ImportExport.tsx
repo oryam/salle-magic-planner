@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableHeader,
@@ -143,6 +144,13 @@ const ImportExport = () => {
   const tableInputRef = useRef<HTMLInputElement>(null);
   const reservationInputRef = useRef<HTMLInputElement>(null);
 
+  // States pour les options d'import
+  const [replaceMode, setReplaceMode] = React.useState({
+    salles: false,
+    tables: false,
+    reservations: false,
+  });
+
   // Télécharger en CSV, avec BOM UTF-8 & bonne gestion date et accents
   const downloadCSV = (data: any[], columns: string[], filename: string, rowMapFn?: (d: any) => any) => {
     const mapped = rowMapFn ? data.map(rowMapFn) : data;
@@ -160,12 +168,13 @@ const ImportExport = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Import CSV
+  // Import CSV modifié pour prendre en compte le mode remplacement
   const handleImportCsv = (
     ref: React.RefObject<HTMLInputElement>,
     columns: string[],
-    importFunc: (items: any[]) => void,
+    importFunc: (items: any[], replace?: boolean) => void,
     rowMapFn?: (row: any) => any,
+    dataType: 'salles' | 'tables' | 'reservations'
   ) => {
     if (ref.current?.files && ref.current.files.length > 0) {
       const file = ref.current.files[0];
@@ -177,7 +186,8 @@ const ImportExport = () => {
           if (rowMapFn) {
             array = array.map(rowMapFn);
           }
-          importFunc(array);
+          // Passer le mode de remplacement à la fonction d'import
+          importFunc(array, replaceMode[dataType]);
         } catch (e) {
           alert("Format du fichier CSV invalide !");
         }
@@ -229,7 +239,7 @@ const ImportExport = () => {
       </div>
 
       {/* Salles */}
-      <Card className="p-4 space-y-2">
+      <Card className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <span className="font-semibold">Salles</span>
           <div className="space-x-2">
@@ -251,15 +261,27 @@ const ImportExport = () => {
               ref={salleInputRef}
               className="hidden"
               onChange={() =>
-                handleImportCsv(salleInputRef, SallesColumns, importSalles)
+                handleImportCsv(salleInputRef, SallesColumns, importSalles, undefined, 'salles')
               }
             />
           </div>
         </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="replace-salles"
+            checked={replaceMode.salles}
+            onCheckedChange={(checked) =>
+              setReplaceMode(prev => ({ ...prev, salles: !!checked }))
+            }
+          />
+          <label htmlFor="replace-salles" className="text-sm text-muted-foreground">
+            Remplacer les données existantes (sinon ajouter)
+          </label>
+        </div>
       </Card>
 
       {/* Tables */}
-      <Card className="p-4 space-y-2">
+      <Card className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <span className="font-semibold">Tables</span>
           <div className="space-x-2">
@@ -281,15 +303,27 @@ const ImportExport = () => {
               ref={tableInputRef}
               className="hidden"
               onChange={() =>
-                handleImportCsv(tableInputRef, TablesColumns, importTables, rowToTable)
+                handleImportCsv(tableInputRef, TablesColumns, importTables, rowToTable, 'tables')
               }
             />
           </div>
         </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="replace-tables"
+            checked={replaceMode.tables}
+            onCheckedChange={(checked) =>
+              setReplaceMode(prev => ({ ...prev, tables: !!checked }))
+            }
+          />
+          <label htmlFor="replace-tables" className="text-sm text-muted-foreground">
+            Remplacer les données existantes (sinon ajouter)
+          </label>
+        </div>
       </Card>
 
       {/* Réservations */}
-      <Card className="p-4 space-y-2">
+      <Card className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <span className="font-semibold">Réservations</span>
           <div className="space-x-2">
@@ -320,11 +354,24 @@ const ImportExport = () => {
                   reservationInputRef,
                   ReservationsColumns,
                   importReservations,
-                  reservationRowToObj // gère format date FR
+                  reservationRowToObj, // gère format date FR
+                  'reservations'
                 )
               }
             />
           </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="replace-reservations"
+            checked={replaceMode.reservations}
+            onCheckedChange={(checked) =>
+              setReplaceMode(prev => ({ ...prev, reservations: !!checked }))
+            }
+          />
+          <label htmlFor="replace-reservations" className="text-sm text-muted-foreground">
+            Remplacer les données existantes (sinon ajouter)
+          </label>
         </div>
       </Card>
 
