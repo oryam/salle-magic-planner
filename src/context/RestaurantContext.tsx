@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { 
   Table, Reservation, TableWithReservations, 
   TableStatus, TableShape, Salle, SalleId 
@@ -11,6 +12,13 @@ import {
   defaultReservations, 
   generateRandomReservations
 } from '@/data/restaurantInitialData';
+
+// Clés pour localStorage
+const STORAGE_KEYS = {
+  SALLES: 'restaurant-salles',
+  TABLES: 'restaurant-tables',
+  RESERVATIONS: 'restaurant-reservations'
+};
 
 interface RestaurantContextType {
   salles: Salle[];
@@ -34,6 +42,27 @@ interface RestaurantContextType {
 
 const RestaurantContext = createContext<RestaurantContextType | undefined>(undefined);
 
+// Fonctions utilitaires pour localStorage
+const saveToStorage = (key: string, data: any) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde en localStorage:', error);
+  }
+};
+
+const loadFromStorage = <T>(key: string, defaultValue: T): T => {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement depuis localStorage:', error);
+  }
+  return defaultValue;
+};
+
 export const useRestaurant = () => {
   const context = useContext(RestaurantContext);
   if (!context) {
@@ -43,9 +72,34 @@ export const useRestaurant = () => {
 };
 
 export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
-  const [salles, setSalles] = useState<Salle[]>(defaultSalles);
-  const [tables, setTables] = useState<Table[]>(defaultTables);
-  const [reservations, setReservations] = useState<Reservation[]>(defaultReservations);
+  // Chargement initial depuis localStorage ou données par défaut
+  const [salles, setSalles] = useState<Salle[]>(() => 
+    loadFromStorage(STORAGE_KEYS.SALLES, defaultSalles)
+  );
+  const [tables, setTables] = useState<Table[]>(() => 
+    loadFromStorage(STORAGE_KEYS.TABLES, defaultTables)
+  );
+  const [reservations, setReservations] = useState<Reservation[]>(() => {
+    const stored = loadFromStorage(STORAGE_KEYS.RESERVATIONS, defaultReservations);
+    // S'assurer que les dates sont bien désérialisées
+    return stored.map((r: any) => ({
+      ...r,
+      date: typeof r.date === "string" ? new Date(r.date) : r.date,
+    }));
+  });
+
+  // Sauvegarde automatique lors des changements
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.SALLES, salles);
+  }, [salles]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.TABLES, tables);
+  }, [tables]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.RESERVATIONS, reservations);
+  }, [reservations]);
 
   // Fonctions d'import
   const importSalles = (newSalles: Salle[]) => {
@@ -181,6 +235,10 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     setSalles([...defaultSalles]);
     setTables([...defaultTables]);
     setReservations([...defaultReservations]);
+    // Nettoyer localStorage
+    localStorage.removeItem(STORAGE_KEYS.SALLES);
+    localStorage.removeItem(STORAGE_KEYS.TABLES);
+    localStorage.removeItem(STORAGE_KEYS.RESERVATIONS);
     toast({
       title: "Données réinitialisées",
       description: "Les données ont été réinitialisées avec un jeu d'exemple enrichi.",
@@ -205,7 +263,7 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       importSalles,
       importTables,
       importReservations,
-      resetAllData, // <-- On expose la nouvelle fonction ici
+      resetAllData,
     }}>
       {children}
     </RestaurantContext.Provider>
