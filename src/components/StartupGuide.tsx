@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const LOCALSTORAGE_KEY = "hideStartupGuide";
 
@@ -104,26 +104,28 @@ export const StartupGuide: React.FC<StartupGuideProps> = ({ open, onClose }) => 
               disabled={step === 0}
               aria-label="Étape précédente"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5" />
             </Button>
             <span className="inline-block px-4 text-xs text-muted-foreground">
               Étape {step + 1} / {features.length}
             </span>
             {step < features.length - 1 ? (
               <Button
+                variant="secondary"
                 className="rounded-full p-2"
                 onClick={handleNext}
                 aria-label="Étape suivante"
               >
-                <ArrowRight className="w-5 h-5" />
+                <ChevronRight className="w-5 h-5" />
               </Button>
             ) : (
               <Button
+                variant="secondary"
                 className="rounded-full px-4"
                 onClick={onClose}
                 aria-label="Fermer le guide"
               >
-                <ArrowRight className="w-5 h-5" />
+                <ChevronRight className="w-5 h-5" />
               </Button>
             )}
           </div>
