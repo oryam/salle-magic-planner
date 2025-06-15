@@ -425,7 +425,7 @@ const Statistiques = () => {
           <CardTitle>Évolution des réservations</CardTitle>
         </CardHeader>
         <CardContent>
-          <ReservationLineChart reservations={filteredReservations} />
+          <ReservationLineChart data={chartData} />
         </CardContent>
       </Card>
 
