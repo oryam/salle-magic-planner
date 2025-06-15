@@ -50,33 +50,43 @@ const Configuration = () => {
   return (
     <div className="min-h-screen bg-background p-2 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 space-y-2 sm:space-y-0">
+        {/* Header CRUD des salles et bouton Ajouter Table */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 space-y-4 sm:space-y-0">
           <h1 className="text-lg sm:text-2xl md:text-3xl font-bold">
             Configuration des tables
           </h1>
-          <TableForm salleId={selectedSalleId} />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 items-center mb-4">
-          <SalleSelector
-            salles={salles}
-            selectedSalleId={selectedSalleId}
-            onSalleChange={setSelectedSalleId}
-            className="w-56"
-          />
-          <input
-            type="text"
-            value={nouvelleSalle}
-            onChange={e => setNouvelleSalle(e.target.value)}
-            placeholder="Nouvelle salle"
-            className="border border-gray-300 rounded px-2 h-10"
-          />
-          <Button variant="outline" onClick={handleAjouterSalle}><Plus className="w-4 h-4 mr-2" />Ajouter</Button>
-          {salles.length > 1 && (
-            <Button variant="destructive" onClick={() => handleDeleteSalle(selectedSalleId)}>
-              <Trash2 className="w-4 h-4 mr-2" /> Supprimer la salle
+        {/* Contrôles salles et ajout */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-center mb-4">
+          {/* Bloc gestion des salles à gauche */}
+          <div className="flex gap-2 items-center">
+            <SalleSelector
+              salles={salles}
+              selectedSalleId={selectedSalleId}
+              onSalleChange={setSelectedSalleId}
+              className="w-44 sm:w-56"
+            />
+            <input
+              type="text"
+              value={nouvelleSalle}
+              onChange={e => setNouvelleSalle(e.target.value)}
+              placeholder="Nouvelle salle"
+              className="border border-gray-300 rounded px-2 h-10"
+            />
+            <Button variant="outline" onClick={handleAjouterSalle}>
+              <Plus className="w-4 h-4 mr-2" />Ajouter
             </Button>
-          )}
+            {salles.length > 1 && (
+              <Button variant="destructive" onClick={() => handleDeleteSalle(selectedSalleId)}>
+                <Trash2 className="w-4 h-4 mr-2" /> Supprimer la salle
+              </Button>
+            )}
+          </div>
+          {/* Bouton Ajouter Table à droite */}
+          <div className="flex-1 flex justify-end w-full sm:w-auto">
+            <TableForm salleId={selectedSalleId} />
+          </div>
         </div>
 
         <div className="grid gap-4">
