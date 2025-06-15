@@ -56,6 +56,7 @@ const Statistiques = () => {
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(["all"]);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [advancedFiltersVisible, setAdvancedFiltersVisible] = useState(false);
 
   // --- GESTION NAVIGATION PERIODIQUE ---
   const handleNavigate = (direction: "prev" | "next") => {
@@ -192,74 +193,65 @@ const Statistiques = () => {
   return (
     <div className="container max-w-6xl mx-auto py-6">
       <h2 className="font-bold text-2xl mb-2">Statistiques des réservations</h2>
-      {/* Bouton ouvrir/fermer les filtres */}
-      <div className="mb-4">
-        <button
-          className="px-4 py-2 text-sm rounded bg-muted hover:bg-muted/70 transition-colors font-medium"
-          onClick={() => setFiltersOpen((open) => !open)}
-        >
-          {filtersOpen ? "Masquer les filtres" : "Afficher les filtres"}
-        </button>
-      </div>
-      {/* Filtres (masqués par défaut) */}
-      {filtersOpen && (
-        <div className="flex flex-wrap gap-4 items-center bg-muted py-3 px-4 mb-4 rounded-lg">
-          {/* Période principale + navigation */}
-          <div className="flex gap-2 flex-wrap items-center">
-            {/* Grouper les deux boutons navigation ensemble */}
-            <div className="flex gap-1">
-              <Button variant="secondary" size="sm" onClick={() => handleNavigate("prev")}>
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => handleNavigate("next")}>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-            {PERIODS.map((p) => (
-              <Button
-                key={p.key}
-                variant={period === p.key ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPeriod(p.key)}
-              >
-                {p.label}
-              </Button>
-            ))}
+      
+      {/* SECTION 1 : Filtres de date/période - toujours visibles */}
+      <div className="mb-4 flex flex-wrap gap-4 items-center bg-muted py-3 px-4 rounded-lg">
+        <div className="flex gap-2 flex-wrap items-center">
+          {/* Boutons navigation période */}
+          <div className="flex gap-1">
+            <Button variant="secondary" size="sm" onClick={() => handleNavigate("prev")}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => handleNavigate("next")}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
-          {/* Si custom intervalle, deux calendriers */}
-          {period === "custom" && (
-            <div className="flex gap-3 items-center">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.start && "text-muted-foreground")}>
-                    {customRange.start ? format(customRange.start, "dd/MM/yyyy") : "Début"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent>
-                  <Calendar
-                    mode="single"
-                    selected={customRange.start}
-                    onSelect={(v) => setCustomRange(cr => ({...cr, start: v ?? null }))}
-                  />
-                </PopoverContent>
-              </Popover>
-              <span>&rarr;</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.end && "text-muted-foreground")}>
-                    {customRange.end ? format(customRange.end, "dd/MM/yyyy") : "Fin"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent>
-                  <Calendar
-                    mode="single"
-                    selected={customRange.end}
-                    onSelect={(v) => setCustomRange(cr => ({...cr, end: v ?? null }))}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
+          {/* Choix de période */}
+          {PERIODS.map((p) => (
+            <Button
+              key={p.key}
+              variant={period === p.key ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPeriod(p.key)}
+            >
+              {p.label}
+            </Button>
+          ))}
+        </div>
+        {/* Sélection de date ou intervalle personnalisé */}
+        {period === "custom" ? (
+          <div className="flex gap-3 items-center">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.start && "text-muted-foreground")}>
+                  {customRange.start ? format(customRange.start, "dd/MM/yyyy") : "Début"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <Calendar
+                  mode="single"
+                  selected={customRange.start}
+                  onSelect={(v) => setCustomRange(cr => ({...cr, start: v ?? null }))}
+                />
+              </PopoverContent>
+            </Popover>
+            <span>&rarr;</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.end && "text-muted-foreground")}>
+                  {customRange.end ? format(customRange.end, "dd/MM/yyyy") : "Fin"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <Calendar
+                  mode="single"
+                  selected={customRange.end}
+                  onSelect={(v) => setCustomRange(cr => ({...cr, end: v ?? null }))}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        ) : (
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="sm">Date</Button>
@@ -272,7 +264,30 @@ const Statistiques = () => {
               />
             </PopoverContent>
           </Popover>
-          {/* Multi-sélecteurs Salles/Tables */}
+        )}
+
+        {/* BOUTON POUR AFFICHER/MASQUER LES FILTRES AVANCÉS */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={() => setAdvancedFiltersVisible(v => !v)}
+        >
+          {advancedFiltersVisible ? "Masquer les filtres avancés" : "Afficher les filtres avancés"}
+        </Button>
+      </div>
+
+      {/* Libellé période affichée */}
+      {getPeriodLabel() && (
+        <div className="mb-3 text-muted-foreground text-sm font-medium">
+          {getPeriodLabel()}
+        </div>
+      )}
+
+      {/* SECTION 2 : Filtres avancés - salles, tables, horaires... */} 
+      {advancedFiltersVisible && (
+        <div className="flex flex-wrap gap-4 items-center bg-muted py-3 px-4 mb-4 rounded-lg">
+          {/* Salles */}
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Salles&nbsp;:</span>
             <div className="flex gap-2 flex-wrap">
@@ -286,6 +301,7 @@ const Statistiques = () => {
               ))}
             </div>
           </div>
+          {/* Tables */}
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Tables&nbsp;:</span>
             <div className="flex gap-2 flex-wrap">
@@ -313,12 +329,6 @@ const Statistiques = () => {
               ))}
             </div>
           </div>
-        </div>
-      )}
-      {/* Affichage du libellé période */}
-      {getPeriodLabel() && (
-        <div className="mb-5 text-muted-foreground text-sm font-medium">
-          {getPeriodLabel()}
         </div>
       )}
 
