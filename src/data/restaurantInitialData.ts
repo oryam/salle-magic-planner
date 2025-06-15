@@ -73,7 +73,7 @@ export function generateRandomReservations(
 export const defaultReservations: Reservation[] = [
   ...generateRandomReservations(
     defaultTables,
-    100,
+    25, // <-- Changement ici, on passe 25 réservations au lieu de 100
     new Date(2024, 0, 1),
     new Date(2025, 5, 15)
   ),
