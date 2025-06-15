@@ -1,3 +1,4 @@
+
 import React from "react";
 import { cn } from "@/lib/utils";
 
@@ -10,8 +11,7 @@ type HeatmapDatum = {
 type Props = {
   data: HeatmapDatum[];
   slots: string[];    // ["Matin", "Midi", "Soir"]
-  days: string[];     // ["2024-06-10", ...] OU ["2024-06"]
-  period?: string;    // Ajout : savoir si on est sur "annee"/"12mois"
+  days: string[];     // ["2024-06-10", ...]
 };
 
 const COLORS = [
@@ -36,7 +36,7 @@ const LABELS: {[x: string]: string} = {
   "Soir": "Soir (18h-23h30)",
 };
 
-const ReservationHeatmap: React.FC<Props> = ({ data, slots, days, period }) => {
+const ReservationHeatmap: React.FC<Props> = ({ data, slots, days }) => {
   // Map for fast lookup
   const map = React.useMemo(() => {
     const m = new Map<string, number>();
@@ -46,24 +46,6 @@ const ReservationHeatmap: React.FC<Props> = ({ data, slots, days, period }) => {
     return m;
   }, [data]);
 
-  // Formatter de l'en-tête selon la période
-  function formatHeaderLabel(dayStr: string): string {
-    if (period === "annee" || period === "12mois") {
-      // dayStr = "YYYY-MM"
-      const parts = dayStr.split("-");
-      if (parts.length === 2) {
-        const dateForMonth = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
-        // Mois abrégé en français, ex: "Janv"
-        return dateForMonth.toLocaleDateString("fr-FR", { month: "short" });
-      }
-      return dayStr;
-    } else {
-      // dayStr = "YYYY-MM-DD"
-      const d = new Date(dayStr);
-      return d.toLocaleDateString("fr-FR", { weekday: "short", month: "short", day: "numeric" });
-    }
-  }
-
   return (
     <div className="overflow-x-auto">
       <table className="border-collapse w-full">
@@ -72,7 +54,10 @@ const ReservationHeatmap: React.FC<Props> = ({ data, slots, days, period }) => {
             <th className="border bg-muted px-1 py-2 text-xs sticky left-0 bg-muted z-10">Créneau</th>
             {days.map((day) => (
               <th key={day} className="border bg-muted px-1 py-2 text-xs">
-                {formatHeaderLabel(day)}
+                {(() => {
+                  const d = new Date(day);
+                  return d.toLocaleDateString("fr-FR", { weekday: "short", month: "short", day: "numeric" });
+                })()}
               </th>
             ))}
           </tr>
@@ -95,7 +80,7 @@ const ReservationHeatmap: React.FC<Props> = ({ data, slots, days, period }) => {
                       minWidth: 32,
                       minHeight: 28,
                     }}
-                    title={`${cnt} réservation${cnt > 1 ? "s" : ""} (${LABELS[slot] ?? slot}) le ${formatHeaderLabel(day)}`}
+                    title={`${cnt} réservation${cnt > 1 ? "s" : ""} (${LABELS[slot] ?? slot}) le ${day}`}
                   >
                     {cnt === 0 ? "" : cnt}
                   </td>
