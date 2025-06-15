@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RestaurantProvider } from "@/context/RestaurantContext";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Navigation from "@/components/Navigation";
 import Configuration from "@/pages/Configuration";
@@ -17,6 +17,26 @@ import ImportExport from "@/pages/ImportExport";
 import Statistiques from "@/pages/Statistiques";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { StartupGuide } from "@/components/StartupGuide";
+
+// Ajout utilitaire pour placer le bouton d'ouverture du sidebar
+function SidebarTriggerFloating() {
+  const { open, isMobile } = useSidebar();
+
+  // On affiche ce bouton seulement si le menu est fermé
+  if (open) return null;
+
+  return (
+    <div
+      className={
+        "fixed z-30 top-3 left-3 md:left-4 " +
+        "bg-white shadow rounded-full p-0 border border-border transition-opacity " +
+        "md:block"
+      }
+    >
+      <SidebarTrigger />
+    </div>
+  );
+}
 
 const queryClient = new QueryClient();
 
@@ -46,6 +66,8 @@ const App = () => {
 
     return (
       <SidebarProvider>
+        {/* Bouton flottant pour ouvrir la sidebar quand fermée */}
+        <SidebarTriggerFloating />
         <div className="min-h-screen flex w-full bg-background">
           <AppSidebar onShowHelp={handleOpenGuide} />
           <SidebarInset>
@@ -83,4 +105,3 @@ const App = () => {
 };
 
 export default App;
-
