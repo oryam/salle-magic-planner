@@ -27,7 +27,7 @@ const StatisticSummary = ({
     <Card className="flex-1 min-w-[120px] bg-muted">
       <CardContent className="py-3 flex flex-col items-center">
         <div className="text-3xl font-bold">{jours}</div>
-        <div className="text-xs text-muted-foreground">Jours couverts</div>
+        <div className="text-xs text-muted-foreground">Jours avec réservation</div>
       </CardContent>
     </Card>
   </div>

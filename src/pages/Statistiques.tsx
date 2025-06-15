@@ -149,6 +149,16 @@ const Statistiques = () => {
       return isInDate && salleValid && tableValid && timeValid;
     });
   }, [reservations, startDate, endDate, selectedSalleIds, selectedTableIds, tables, selectedTimes]);
+  
+  // Calcul du nombre de jours distincts avec réservation
+  const distinctDaysWithReservation = useMemo(() => {
+    const daysSet = new Set<string>();
+    filteredReservations.forEach(reservation => {
+      // Format de la date : yyyy-MM-dd
+      daysSet.add(format(reservation.date, "yyyy-MM-dd"));
+    });
+    return daysSet.size;
+  }, [filteredReservations]);
 
   // Génération des options pour salles/tables
   const salleOptions = salles.map(s => ({ value: s.id, label: s.nom }));
@@ -178,7 +188,7 @@ const Statistiques = () => {
   // Résumés
   const totalReservations = filteredReservations.length;
   const totalPersonnes = filteredReservations.reduce((sum, r) => sum + r.nombrePersonnes, 0);
-  const nbJours = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime())/(1000*60*60*24)));
+  // const nbJours = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime())/(1000*60*60*24))); // <-- plus utilisé
 
   // Sélection multi pour salle/table/horaires (UI réactive)
   const handleSalleSelect = (id: string) => setSelectedSalleIds(ids => ids.includes(id) ? ids.filter(val => val !== id) : [...ids, id]);
@@ -336,7 +346,7 @@ const Statistiques = () => {
       <StatisticSummary
         reservations={totalReservations}
         personnes={totalPersonnes}
-        jours={nbJours}
+        jours={distinctDaysWithReservation}
       />
 
       {/* Graphe courbe réservations */}
