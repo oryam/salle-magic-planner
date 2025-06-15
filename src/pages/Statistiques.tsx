@@ -169,37 +169,40 @@ const Statistiques = () => {
 
   // Données chart : groupées par jour OU par mois selon la période
   const chartData = useMemo(() => {
-    // Cas regroupement par mois
+    // Cas regroupement par mois (année et 12 derniers mois)
     if (period === "annee" || period === "12mois") {
-      // Générer tous les mois du range de dates
-      const months: {
-        [iso: string]: { date: Date; reservations: number; personnes: number }
-      } = {};
-      let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      const monthMap = new Map<string, { date: Date; reservations: number; personnes: number }>();
+      // Crée les mois du range avec quantité initiale 0
+      let year = startDate.getFullYear();
+      let month = startDate.getMonth();
       while (
-        cursor.getFullYear() < endDate.getFullYear() ||
-        (cursor.getFullYear() === endDate.getFullYear() && cursor.getMonth() <= endDate.getMonth())
+        year < endDate.getFullYear() ||
+        (year === endDate.getFullYear() && month <= endDate.getMonth())
       ) {
-        const key = `${cursor.getFullYear()}-${String(
-          cursor.getMonth() + 1
-        ).padStart(2, "0")}`;
-        months[key] = { date: new Date(cursor), reservations: 0, personnes: 0 };
-        cursor = new Date(
-          cursor.getFullYear(),
-          cursor.getMonth() + 1,
-          1
-        );
+        const key = `${year}-${String(month + 1).padStart(2, "0")}`;
+        monthMap.set(key, {
+          date: new Date(year, month, 1),
+          reservations: 0,
+          personnes: 0
+        });
+        // avance d'un mois
+        month++;
+        if (month > 11) {
+          month = 0;
+          year++;
+        }
       }
       filteredReservations.forEach(res => {
-        const key = `${res.date.getFullYear()}-${String(
-          res.date.getMonth() + 1
-        ).padStart(2, "0")}`;
-        if (months[key]) {
-          months[key].reservations += 1;
-          months[key].personnes += res.nombrePersonnes;
+        const y = res.date.getFullYear();
+        const m = res.date.getMonth();
+        const key = `${y}-${String(m + 1).padStart(2, "0")}`;
+        const agg = monthMap.get(key);
+        if (agg) {
+          agg.reservations += 1;
+          agg.personnes += res.nombrePersonnes;
         }
       });
-      return Object.values(months);
+      return Array.from(monthMap.values());
     }
 
     // Sinon, groupement par jour comme avant
