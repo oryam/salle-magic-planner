@@ -10,18 +10,26 @@ import {
   Tooltip,
   Legend
 } from "recharts";
+import { fr } from "date-fns/locale";
 
 type StatChartDatum = {
-  date: Date;
+  date: Date | string;
   reservations: number;
   personnes: number;
 };
 
-const formatTick = (date: Date) => {
-  return date instanceof Date
-    ? date.toLocaleDateString("fr-FR", { month: "short", day: "numeric" })
-    : String(date);
-};
+function formatTick(date: Date | string) {
+  // Si string au format YYYY-MM (mois), afficher mois abrégé ("Janv")
+  if (typeof date === "string" && /^\d{4}-\d{2}$/.test(date)) {
+    const d = new Date(`${date}-01`);
+    return d.toLocaleDateString("fr-FR", { month: "short" });
+  }
+  // Sinon mode jour par jour
+  if (date instanceof Date) {
+    return date.toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
+  }
+  return String(date);
+}
 
 const ReservationLineChart = ({
   data,
@@ -42,11 +50,16 @@ const ReservationLineChart = ({
         tick={{ fontSize: 12, fill: "#64748b" }}
       />
       <Tooltip
-        labelFormatter={val =>
-          val instanceof Date
-            ? val.toLocaleDateString("fr-FR")
-            : String(val)
-        }
+        labelFormatter={val => {
+          if (typeof val === "string" && /^\d{4}-\d{2}$/.test(val)) {
+            const d = new Date(`${val}-01`);
+            return d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+          }
+          if (val instanceof Date) {
+            return val.toLocaleDateString("fr-FR");
+          }
+          return String(val);
+        }}
         formatter={(value: any, name: string) =>
           [
             value,
