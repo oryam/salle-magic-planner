@@ -127,7 +127,7 @@ const StatisticsFilters: React.FC<Props> = ({
               <label key={opt.value} className="flex items-center gap-1">
                 <Checkbox
                   checked={selectedSalleIds.includes(opt.value)}
-                  onCheckedChange={(_checked: boolean) => { handleSalleSelect(opt.value); }}
+                  onCheckedChange={(_checked: boolean | "indeterminate") => { handleSalleSelect(opt.value); }}
                   id={`salle-${opt.value}`}
                 />
                 <span>{opt.label}</span>
@@ -143,7 +143,7 @@ const StatisticsFilters: React.FC<Props> = ({
               <label key={opt.value} className="flex items-center gap-1">
                 <Checkbox
                   checked={selectedTableIds.includes(opt.value)}
-                  onCheckedChange={(_checked: boolean) => { handleTableSelect(opt.value); }}
+                  onCheckedChange={(_checked: boolean | "indeterminate") => { handleTableSelect(opt.value); }}
                   id={`table-${opt.value}`}
                 />
                 <span>{opt.label}</span>
@@ -159,7 +159,7 @@ const StatisticsFilters: React.FC<Props> = ({
               <label key={opt.key} className="flex items-center gap-1">
                 <Checkbox
                   checked={selectedTimes.includes(opt.key)}
-                  onCheckedChange={(_checked: boolean) => { handleTimeSelect(opt.key); }}
+                  onCheckedChange={(_checked: boolean | "indeterminate") => { handleTimeSelect(opt.key); }}
                   id={`time-${opt.key}`}
                 />
                 <span>{opt.label}</span>
