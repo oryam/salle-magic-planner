@@ -80,7 +80,69 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
 
   const defaultTables = [...tableData];
 
+  // Génère n réservations sur une période pour les tables disponibles
+  function generateSampleReservations(
+    refDate: Date,
+    months: number,
+    minPerMonth: number,
+    maxPerMonth: number,
+    tables: Table[]
+  ) {
+    const noms = [
+      'M. Dupond', 'Patrick', 'Julie', 'Fatima', 'Guillaume',
+      'Alice', 'Sophie', 'Karim', 'Laure', 'Xavier'
+    ];
+    const heuresMatin = ['07:30', '09:30', '10:45'];
+    const heuresMidi = ['12:00', '12:30', '13:00', '14:15'];
+    const heuresSoir = ['18:30', '20:00', '21:00', '22:15'];
+    const reservations: Reservation[] = [];
+    let rid = 10; // Avoid collision with existing demos
+
+    for (let m = 0; m <= months; m++) {
+      // Target month: add m months to refDate
+      const baseMonth = new Date(refDate.getFullYear(), refDate.getMonth() + m, 1);
+      const nbRes = Math.floor(Math.random() * (maxPerMonth - minPerMonth + 1)) + minPerMonth;
+      for (let i = 0; i < nbRes; i++) {
+        // Choose a date in the month (between 1 and 25 for simplicity)
+        const day = Math.floor(Math.random() * 25) + 1;
+        let date = new Date(baseMonth.getFullYear(), baseMonth.getMonth(), day);
+        // Randomly choose meal slot and hour
+        const slotType = Math.floor(Math.random() * 3);
+        let heure, heureArr, personnes;
+        if (slotType === 0) { // matin
+          heure = heuresMatin[Math.floor(Math.random() * heuresMatin.length)];
+          personnes = 2 + Math.floor(Math.random()*2);
+        } else if (slotType ===1) { // midi
+          heure = heuresMidi[Math.floor(Math.random() * heuresMidi.length)];
+          personnes = 2 + Math.floor(Math.random()*5);
+        } else { // soir
+          heure = heuresSoir[Math.floor(Math.random() * heuresSoir.length)];
+          personnes = 2 + Math.floor(Math.random()*6);
+        }
+        // S'assurer que l'heure est bien valide (string -> {h, mn})
+        heureArr = heure.split(':');
+        date.setHours(parseInt(heureArr[0]), parseInt(heureArr[1]));
+        // Table au hasard
+        const table = tables[Math.floor(Math.random()*tables.length)];
+        // Nom client fictif
+        const nomClient = noms[(rid + i)%noms.length] + ` (${m+1}/${i+1})`;
+
+        reservations.push({
+          id: (rid++).toString(),
+          tableId: table.id,
+          date,
+          heure,
+          nombrePersonnes: personnes,
+          nomClient
+        });
+      }
+    }
+    return reservations;
+  }
+
+  // Données démo enrichies
   const defaultReservations: Reservation[] = [
+    // Les 3 exemples initiaux
     {
       id: '1',
       tableId: '1',
@@ -103,7 +165,9 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       date: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 19, 15),
       heure: '19:15',
       nombrePersonnes: 4,
-    }
+    },
+    // + enrichissement : entre 1 et 5 résas par mois sur 4 mois (mois courant +3)
+    ...generateSampleReservations(today, 3, 1, 5, tableData)
   ];
 
   const [tables, setTables] = useState<Table[]>(defaultTables);
@@ -238,14 +302,14 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
       });
   };
 
-  // Nouvelle fonction pour remettre toutes les données à zéro
+  // Nouvelle fonction pour remettre toutes les données à zéro (utilise les nouvelles résas démo)
   const resetAllData = () => {
     setSalles([...defaultSalles]);
     setTables([...defaultTables]);
     setReservations([...defaultReservations]);
     toast({
       title: "Données réinitialisées",
-      description: "Les données ont été réinitialisées avec le jeu d'exemple.",
+      description: "Les données ont été réinitialisées avec un jeu d'exemple enrichi.",
     });
   };
 
