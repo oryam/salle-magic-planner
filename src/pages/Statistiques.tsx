@@ -248,40 +248,79 @@ const Statistiques = () => {
     return "";
   }
 
+  // --- ADAPTATION DE LA LISTE DES COLONNES (jours ou mois selon la période) ---
   const daysList = React.useMemo(() => {
-    const result: string[] = [];
-    let cursor = new Date(startDate);
-    while (cursor <= endDate) {
-      result.push(format(cursor, "yyyy-MM-dd"));
-      cursor.setDate(cursor.getDate() + 1);
-    }
-    return result;
-  }, [startDate, endDate]);
-
-  const heatmapData = React.useMemo(() => {
-    // Map: { [day + '|' + slot]: count }
-    const countMap: { [key: string]: number } = {};
-    filteredReservations.forEach(res => {
-      const day = format(res.date, "yyyy-MM-dd");
-      const slot = slotForHour(res.heure);
-      if (!slot) return; // ignore reservations en dehors des créneaux
-      const key = `${day}|${slot}`;
-      countMap[key] = (countMap[key] ?? 0) + 1;
-    });
-
-    // Construction du tableau d'objets
-    const arr: { slot: string; date: string; count: number }[] = [];
-    for (const day of daysList) {
-      for (const slot of slots) {
-        arr.push({
-          slot,
-          date: day,
-          count: countMap[`${day}|${slot}`] ?? 0,
-        });
+    if (period === "annee" || period === "12mois") {
+      // Retourne la liste des mois du range sous forme 'YYYY-MM'
+      const months: string[] = [];
+      let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1, 0, 0, 0, 0);
+      while (cursor <= endDate) {
+        months.push(
+          `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`
+        );
+        cursor.setMonth(cursor.getMonth() + 1);
       }
+      return months;
+    } else {
+      // Liste de jours classiques au format 'YYYY-MM-DD'
+      const result: string[] = [];
+      let cursor = new Date(startDate);
+      while (cursor <= endDate) {
+        result.push(format(cursor, "yyyy-MM-dd"));
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return result;
     }
-    return arr;
-  }, [filteredReservations, daysList, slots]);
+  }, [startDate, endDate, period]);
+
+  // --- ADAPTATION DE L'AGGREGATION POUR LA HEATMAP ---
+  const heatmapData = React.useMemo(() => {
+    // key: 'YYYY-MM|slot' ou 'YYYY-MM-DD|slot'
+    const countMap: { [key: string]: number } = {};
+    if (period === "annee" || period === "12mois") {
+      // Regroupement par mois + slot
+      filteredReservations.forEach(res => {
+        const month = `${res.date.getFullYear()}-${String(res.date.getMonth() + 1).padStart(2, "0")}`;
+        const slot = slotForHour(res.heure);
+        if (!slot) return;
+        const key = `${month}|${slot}`;
+        countMap[key] = (countMap[key] ?? 0) + 1;
+      });
+      // Générer le tableau pour chaque mois/slot
+      const arr: { slot: string; date: string; count: number }[] = [];
+      for (const month of daysList) {
+        for (const slot of slots) {
+          arr.push({
+            slot,
+            date: month, // Attention: ce sera 'YYYY-MM' ici
+            count: countMap[`${month}|${slot}`] ?? 0,
+          });
+        }
+      }
+      return arr;
+    } else {
+      // Regroupement par jour + slot
+      filteredReservations.forEach(res => {
+        const day = format(res.date, "yyyy-MM-dd");
+        const slot = slotForHour(res.heure);
+        if (!slot) return;
+        const key = `${day}|${slot}`;
+        countMap[key] = (countMap[key] ?? 0) + 1;
+      });
+      // Générer le tableau pour chaque jour/slot
+      const arr: { slot: string; date: string; count: number }[] = [];
+      for (const day of daysList) {
+        for (const slot of slots) {
+          arr.push({
+            slot,
+            date: day,
+            count: countMap[`${day}|${slot}`] ?? 0,
+          });
+        }
+      }
+      return arr;
+    }
+  }, [filteredReservations, daysList, slots, period]);
 
   return (
     <div className="px-2 sm:px-5 max-w-full w-full">
