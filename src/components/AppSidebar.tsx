@@ -10,15 +10,24 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Upload } from "lucide-react";
 // Ajout icône
 import { ChartLine } from "lucide-react";
+import { HelpCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import React from "react";
 
-export function AppSidebar() {
+// Ajout d'une prop pour ouvrir l'aide depuis la sidebar
+interface AppSidebarProps {
+  onShowHelp?: () => void;
+}
+
+export function AppSidebar({ onShowHelp }: AppSidebarProps) {
   const location = useLocation();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile } = useSidebar();
 
   const navItems = [
     { path: '/', label: 'Configuration', icon: Settings },
@@ -30,11 +39,32 @@ export function AppSidebar() {
 
   // ferme la sidebar mobile lors d'un clic sur lien de navigation
   const handleNavClick = () => {
-    if (isMobile) setOpenMobile(false);
+    if (isMobile && typeof window !== "undefined") {
+      // on ferme via le contexte shadcn
+      const sidebar = document.querySelector('[data-sidebar="sidebar"]');
+      if (sidebar) {
+        sidebar.dispatchEvent(new Event("close"));
+      }
+    }
   };
 
   return (
     <Sidebar>
+      {/* Bouton pour ouvrir/fermer le menu latéral, visible en haut du sidebar (desktop et mobile) */}
+      <div className="flex items-center gap-2 py-2 px-3 border-b border-sidebar-border">
+        <SidebarTrigger />
+        <span className="text-lg font-semibold">Salle Magic Planner</span>
+        {/* Le bouton aide dans la sidebar */}
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Aide"
+          onClick={onShowHelp}
+          className="ml-auto"
+        >
+          <HelpCircle className="w-5 h-5" />
+        </Button>
+      </div>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -56,3 +86,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+

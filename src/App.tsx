@@ -47,7 +47,7 @@ const App = () => {
     return (
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
-          <AppSidebar />
+          <AppSidebar onShowHelp={handleOpenGuide} />
           <SidebarInset>
             {/* Affiche uniquement Navigation sur mobile */}
             {isMobile && <Navigation onShowHelp={handleOpenGuide} />}
@@ -73,8 +73,7 @@ const App = () => {
         <RestaurantProvider>
           <BrowserRouter>
             <StartupGuide open={showGuide} onClose={handleCloseGuide} />
-            {/* Passe la prop onShowHelp à Navigation pour desktop */}
-            <Navigation onShowHelp={handleOpenGuide} />
+            {/* NE PLUS afficher le menu Navigation ici */}
             <MainWrapper />
           </BrowserRouter>
         </RestaurantProvider>
