@@ -167,45 +167,39 @@ const Statistiques = () => {
     .filter(t => selectedSalleIds.length === 0 || selectedSalleIds.includes(t.salleId))
     .map(t => ({ value: t.id, label: `Table ${t.numero}` }));
 
-  // Données chart : groupées par jour OU par mois selon la période
+  // Données chart : groupées par jour ou par mois selon la période
   const chartData = useMemo(() => {
-    // Cas regroupement par mois (année et 12 derniers mois)
+    // --- NOUVELLE LOGIQUE pour périodes annee et 12mois ---
     if (period === "annee" || period === "12mois") {
-      const monthMap = new Map<string, { date: Date; reservations: number; personnes: number }>();
-      // Crée les mois du range avec quantité initiale 0
-      let year = startDate.getFullYear();
-      let month = startDate.getMonth();
-      while (
-        year < endDate.getFullYear() ||
-        (year === endDate.getFullYear() && month <= endDate.getMonth())
-      ) {
-        const key = `${year}-${String(month + 1).padStart(2, "0")}`;
-        monthMap.set(key, {
-          date: new Date(year, month, 1),
+      // Regrouper par mois entre startDate et endDate
+      const months = [];
+      let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1, 0, 0, 0, 0);
+      while (cursor <= endDate) {
+        months.push({
+          key: `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`,
+          date: new Date(cursor),
           reservations: 0,
-          personnes: 0
+          personnes: 0,
         });
-        // avance d'un mois
-        month++;
-        if (month > 11) {
-          month = 0;
-          year++;
-        }
+        // passe au 1er du mois suivant
+        cursor.setMonth(cursor.getMonth() + 1);
       }
+      // Créer un map pour accès rapide
+      const monthMap = new Map(months.map(m => [m.key, m]));
       filteredReservations.forEach(res => {
         const y = res.date.getFullYear();
-        const m = res.date.getMonth();
-        const key = `${y}-${String(m + 1).padStart(2, "0")}`;
-        const agg = monthMap.get(key);
-        if (agg) {
-          agg.reservations += 1;
-          agg.personnes += res.nombrePersonnes;
+        const m = res.date.getMonth() + 1;
+        const key = `${y}-${String(m).padStart(2, "0")}`;
+        if (monthMap.has(key)) {
+          monthMap.get(key)!.reservations += 1;
+          monthMap.get(key)!.personnes += res.nombrePersonnes;
         }
       });
-      return Array.from(monthMap.values());
+      return months;
     }
+    // --- FIN DU TRAITEMENT SPÉCIFIQUE ---
 
-    // Sinon, groupement par jour comme avant
+    // Sinon, groupement par jour (comportement inchangé)
     const days: {
       [iso: string]: { date: Date; reservations: number; personnes: number }
     } = {};
