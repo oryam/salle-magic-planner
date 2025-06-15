@@ -12,6 +12,7 @@ import Salle from "@/pages/Salle";
 import Reservations from "@/pages/Reservations";
 import NotFound from "./pages/NotFound";
 import ImportExport from "@/pages/ImportExport";
+import Statistiques from "@/pages/Statistiques";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
                   <Route path="/" element={<Configuration />} />
                   <Route path="/salle" element={<Salle />} />
                   <Route path="/reservations" element={<Reservations />} />
+                  <Route path="/statistiques" element={<Statistiques />} />
                   <Route path="/import-export" element={<ImportExport />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
