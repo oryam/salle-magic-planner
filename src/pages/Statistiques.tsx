@@ -43,7 +43,7 @@ function filterByTimeSlot(hourStr?: string, selTimes?: string[]) {
   return false;
 }
 
-type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
+type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee' | '12mois' | 'custom';
 
 const ALL_SALLES_VALUE = "all";
 

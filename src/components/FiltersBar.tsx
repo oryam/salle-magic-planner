@@ -8,7 +8,7 @@ import { fr } from 'date-fns/locale';
 import SalleSelector from '@/components/SalleSelector';
 import { Salle } from '@/types/restaurant';
 
-type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
+type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee' | '12mois' | 'custom';
 
 interface FiltersBarProps {
   // Sélection des salles
@@ -64,6 +64,12 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
         return format(currentDate, 'MMMM yyyy', { locale: fr });
       case 'annee':
         return format(currentDate, 'yyyy', { locale: fr });
+      case '12mois':
+        return `12 derniers mois (${format(currentDate, 'yyyy', { locale: fr })})`;
+      case 'custom':
+        return 'Période personnalisée';
+      default:
+        return format(currentDate, 'MMMM yyyy', { locale: fr });
     }
   };
 
