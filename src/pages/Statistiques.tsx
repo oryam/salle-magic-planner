@@ -290,15 +290,17 @@ const Statistiques = () => {
   }, [filteredReservations, daysList, slots]);
 
   return (
-    <div>
+    <div className="px-2 sm:px-5 max-w-full w-full">
       {/* FILTRES */}
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Statistiques</h1>
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+        <h1 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-0 whitespace-nowrap">
+          Statistiques
+        </h1>
         <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline">Filtrer</Button>
+            <Button variant="outline" className="w-full sm:w-auto">Filtrer</Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80">
+          <PopoverContent className="w-80 max-w-xs sm:max-w-sm">
             <div className="space-y-4">
               <div className="space-y-2">
                 <h4 className="text-sm font-medium">Période</h4>
@@ -429,54 +431,83 @@ const Statistiques = () => {
       </div>
 
       {/* NAVIGATION PERIOD */}
-      <div className="flex items-center justify-between mb-4">
-        <Button variant="outline" size="sm" onClick={() => handleNavigate("prev")}>
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleNavigate("prev")}
+          className="w-full sm:w-auto"
+        >
           <ChevronLeft className="mr-2 h-4 w-4" />
           Précédent
         </Button>
-        <span className="text-sm text-muted-foreground">{getPeriodLabel()}</span>
-        <Button variant="outline" size="sm" onClick={() => handleNavigate("next")}>
+        <span className="text-xs text-muted-foreground text-center sm:text-sm">
+          {getPeriodLabel()}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleNavigate("next")}
+          className="w-full sm:w-auto"
+        >
           Suivant
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
 
       {/* RESUME STATS */}
-      <StatisticSummary
-        reservations={totalReservations}
-        personnes={totalPersonnes}
-        jours={distinctDaysWithReservation}
-      />
+      <div className="mb-5">
+        <StatisticSummary
+          reservations={totalReservations}
+          personnes={totalPersonnes}
+          jours={distinctDaysWithReservation}
+        />
+      </div>
 
       {/* CHART */}
       <Card className="mb-5">
         <CardHeader>
-          <CardTitle>Nombre de réservations et de personnes par jour</CardTitle>
+          <CardTitle className="text-base sm:text-lg">
+            Nombre de réservations et de personnes par jour
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <StatisticsChart data={chartData} />
+        <CardContent className="p-0 sm:p-6">
+          {/* Responsive scroll horizontal sur mobile si overflow */}
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-[350px]">
+              <StatisticsChart data={chartData} />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* LINE CHART */}
       <Card className="mb-5">
         <CardHeader>
-          <CardTitle>Évolution des réservations</CardTitle>
+          <CardTitle className="text-base sm:text-lg">
+            Évolution des réservations
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ReservationLineChart data={chartData} />
+        <CardContent className="p-0 sm:p-6">
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-[350px]">
+              <ReservationLineChart data={chartData} />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* HEATMAP RÉPARTITION PAR CRÉNEAUX */}
       <Card>
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="text-base sm:text-lg">
             Heatmap des réservations par créneau (matin/midi/soir)
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ReservationHeatmap data={heatmapData} slots={slots} days={daysList} />
+        <CardContent className="p-0 sm:p-6">
+          <div className="w-full overflow-x-auto">
+            <ReservationHeatmap data={heatmapData} slots={slots} days={daysList} />
+          </div>
         </CardContent>
       </Card>
     </div>
