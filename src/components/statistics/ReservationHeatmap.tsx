@@ -4,14 +4,15 @@ import { cn } from "@/lib/utils";
 
 type HeatmapDatum = {
   slot: string;  // Matin/Midi/Soir
-  date: string;  // formatted yyyy-MM-dd
+  date: string;  // formatted yyyy-MM-dd or yyyy-MM
   count: number;
 };
 
 type Props = {
   data: HeatmapDatum[];
   slots: string[];    // ["Matin", "Midi", "Soir"]
-  days: string[];     // ["2024-06-10", ...]
+  days: string[];     // ["2024-06-10", ...] or ["2024-06", ...]
+  isMonthlyView?: boolean; // New prop to indicate if we're showing months instead of days
 };
 
 const COLORS = [
@@ -36,7 +37,7 @@ const LABELS: {[x: string]: string} = {
   "Soir": "Soir (18h-23h30)",
 };
 
-const ReservationHeatmap: React.FC<Props> = ({ data, slots, days }) => {
+const ReservationHeatmap: React.FC<Props> = ({ data, slots, days, isMonthlyView = false }) => {
   // Map for fast lookup
   const map = React.useMemo(() => {
     const m = new Map<string, number>();
@@ -46,6 +47,20 @@ const ReservationHeatmap: React.FC<Props> = ({ data, slots, days }) => {
     return m;
   }, [data]);
 
+  // Function to format the header based on view type
+  const formatHeader = (day: string) => {
+    if (isMonthlyView) {
+      // day is in format "YYYY-MM", we want to display just the month name
+      const [year, month] = day.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+      return date.toLocaleDateString("fr-FR", { month: "short" });
+    } else {
+      // day is in format "YYYY-MM-DD", display as before
+      const d = new Date(day);
+      return d.toLocaleDateString("fr-FR", { weekday: "short", month: "short", day: "numeric" });
+    }
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="border-collapse w-full">
@@ -54,10 +69,7 @@ const ReservationHeatmap: React.FC<Props> = ({ data, slots, days }) => {
             <th className="border bg-muted px-1 py-2 text-xs sticky left-0 bg-muted z-10">Créneau</th>
             {days.map((day) => (
               <th key={day} className="border bg-muted px-1 py-2 text-xs">
-                {(() => {
-                  const d = new Date(day);
-                  return d.toLocaleDateString("fr-FR", { weekday: "short", month: "short", day: "numeric" });
-                })()}
+                {formatHeader(day)}
               </th>
             ))}
           </tr>

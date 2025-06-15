@@ -539,7 +539,12 @@ const Statistiques = () => {
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
           <div className="w-full overflow-x-auto">
-            <ReservationHeatmap data={heatmapData} slots={slots} days={daysList} />
+            <ReservationHeatmap 
+              data={heatmapData} 
+              slots={slots} 
+              days={daysList}
+              isMonthlyView={period === "annee" || period === "12mois"}
+            />
           </div>
         </CardContent>
       </Card>
