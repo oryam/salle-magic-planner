@@ -9,19 +9,24 @@ const LOCALSTORAGE_KEY = "hideStartupGuide";
 
 const features = [
   {
+    title: "Aperçu du système",
+    description: "Découvrez les principales fonctionnalités de votre système de gestion de restaurant.",
+    showImage: true
+  },
+  {
     title: "Configuration du restaurant",
     description:
       "Définissez vos salles et tables pour correspondre à l'agencement réel de votre établissement."
   },
   {
-    title: "Gestion visuelle des tables (‘Salle’)",
+    title: "Gestion visuelle des tables ('Salle')",
     description:
-      "Disposez et organisez vos tables dans la salle pour visualiser et préparer l’espace."
+      "Disposez et organisez vos tables dans la salle pour visualiser et préparer l'espace."
   },
   {
     title: "Réservations",
     description:
-      "Ajoutez, modifiez ou supprimez des réservations ; consultez-les jour par jour."
+      "Ajoutez, modifiez ou supprimez des réservations ; consultez-les jour par jour."
   },
   {
     title: "Statistiques",
@@ -83,6 +88,15 @@ export const StartupGuide: React.FC<StartupGuideProps> = ({ open, onClose }) => 
                 {features[step].title}
               </div>
               <div className="text-sm">{features[step].description}</div>
+              {features[step].showImage && (
+                <div className="mt-3 flex justify-center">
+                  <img 
+                    src="/lovable-uploads/aef54963-9ec4-468d-b623-c4d8ee9d657c.png" 
+                    alt="Aperçu des fonctionnalités du système de gestion de restaurant"
+                    className="max-w-full h-auto rounded-lg border"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 mt-4">
