@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
+import { format, addDays, addWeeks, addMonths, addYears, subDays, subWeeks, subMonths, subYears } from "date-fns";
 import { fr } from "date-fns/locale";
 import StatisticSummary from "@/components/statistics/StatisticSummary";
 import StatisticsChart from "@/components/statistics/StatisticsChart";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import ReservationLineChart from "@/components/statistics/ReservationLineChart";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const TIME_FILTERS = [
   { key: "all", label: "Toutes" },
@@ -54,6 +55,23 @@ const Statistiques = () => {
   const [selectedSalleIds, setSelectedSalleIds] = useState<string[]>([]);
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(["all"]);
+
+  // --- GESTION NAVIGATION PERIODIQUE ---
+  const handleNavigate = (direction: "prev" | "next") => {
+    let newDate = new Date(date);
+    if (period === "jour") {
+      newDate = direction === "prev" ? subDays(date, 1) : addDays(date, 1);
+    } else if (period === "semaine") {
+      newDate = direction === "prev" ? subWeeks(date, 1) : addWeeks(date, 1);
+    } else if (period === "mois") {
+      newDate = direction === "prev" ? subMonths(date, 1) : addMonths(date, 1);
+    } else if (period === "annee") {
+      newDate = direction === "prev" ? subYears(date, 1) : addYears(date, 1);
+    } else if (period === "12mois") {
+      newDate = direction === "prev" ? subMonths(date, 12) : addMonths(date, 12);
+    }
+    setDate(newDate);
+  };
 
   // Calcul des filtres de période
   const now = new Date();
@@ -152,8 +170,12 @@ const Statistiques = () => {
 
       {/* Filtres */}
       <div className="flex flex-wrap gap-4 items-center bg-muted py-3 px-4 mb-4 rounded-lg">
-        {/* Période principale */}
+        {/* Période principale + navigation */}
         <div className="flex gap-2 flex-wrap items-center">
+          {/* Bouton précédent */}
+          <Button variant="secondary" size="sm" onClick={() => handleNavigate("prev")}>
+            <ChevronLeft className="w-4 h-4" /> 
+          </Button>
           {PERIODS.map((p) => (
             <Button
               key={p.key}
@@ -164,6 +186,10 @@ const Statistiques = () => {
               {p.label}
             </Button>
           ))}
+          {/* Bouton suivant */}
+          <Button variant="secondary" size="sm" onClick={() => handleNavigate("next")}>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
         {/* Si custom intervalle, deux calendriers */}
         {period === "custom" && (
