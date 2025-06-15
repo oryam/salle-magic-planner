@@ -13,12 +13,12 @@ import PeriodSelector from '@/components/PeriodSelector';
 import TablesSidebar from '@/components/TablesSidebar';
 import SalleFloor from '@/components/SalleFloor';
 import SalleSelector from '@/components/SalleSelector';
-
-type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
+import { PeriodType } from "@/types/restaurant"; // Correction ici
 
 const Salle = () => {
   const { getTablesWithReservations, salles } = useRestaurant();
   const [currentDate, setCurrentDate] = useState(new Date());
+  // Correction ici : on type period avec PeriodType qui inclut toutes les valeurs possibles
   const [period, setPeriod] = useState<PeriodType>('jour');
   const [draggedTable, setDraggedTable] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -31,6 +31,8 @@ const Salle = () => {
       case 'semaine': return startOfWeek(currentDate, { weekStartsOn: 1 });
       case 'mois': return startOfMonth(currentDate);
       case 'annee': return startOfYear(currentDate);
+      case '12mois': return startOfYear(currentDate);
+      case 'custom': return startOfDay(currentDate);
     }
   };
 
@@ -44,7 +46,10 @@ const Salle = () => {
         case 'mois':
           return direction === 'next' ? addMonths(prev, 1) : addMonths(prev, -1);
         case 'annee':
+        case '12mois':
           return direction === 'next' ? addYears(prev, 1) : addYears(prev, -1);
+        case 'custom':
+          return direction === 'next' ? addDays(prev, 1) : addDays(prev, -1);
       }
     });
   };

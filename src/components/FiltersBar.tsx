@@ -113,6 +113,8 @@ const FiltersBar: React.FC<FiltersBarProps> = ({
               <SelectItem value="semaine">Semaine</SelectItem>
               <SelectItem value="mois">Mois</SelectItem>
               <SelectItem value="annee">Année</SelectItem>
+              <SelectItem value="12mois">12 derniers mois</SelectItem>
+              <SelectItem value="custom">Personnalisée</SelectItem>
             </SelectContent>
           </Select>
           
