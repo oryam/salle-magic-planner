@@ -55,6 +55,7 @@ const Statistiques = () => {
   const [selectedSalleIds, setSelectedSalleIds] = useState<string[]>([]);
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(["all"]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // --- GESTION NAVIGATION PERIODIQUE ---
   const handleNavigate = (direction: "prev" | "next") => {
@@ -191,6 +192,129 @@ const Statistiques = () => {
   return (
     <div className="container max-w-6xl mx-auto py-6">
       <h2 className="font-bold text-2xl mb-2">Statistiques des réservations</h2>
+      {/* Bouton ouvrir/fermer les filtres */}
+      <div className="mb-4">
+        <button
+          className="px-4 py-2 text-sm rounded bg-muted hover:bg-muted/70 transition-colors font-medium"
+          onClick={() => setFiltersOpen((open) => !open)}
+        >
+          {filtersOpen ? "Masquer les filtres" : "Afficher les filtres"}
+        </button>
+      </div>
+      {/* Filtres (masqués par défaut) */}
+      {filtersOpen && (
+        <div className="flex flex-wrap gap-4 items-center bg-muted py-3 px-4 mb-4 rounded-lg">
+          {/* Période principale + navigation */}
+          <div className="flex gap-2 flex-wrap items-center">
+            {/* Grouper les deux boutons navigation ensemble */}
+            <div className="flex gap-1">
+              <Button variant="secondary" size="sm" onClick={() => handleNavigate("prev")}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => handleNavigate("next")}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+            {PERIODS.map((p) => (
+              <Button
+                key={p.key}
+                variant={period === p.key ? "default" : "outline"}
+                size="sm"
+                onClick={() => setPeriod(p.key)}
+              >
+                {p.label}
+              </Button>
+            ))}
+          </div>
+          {/* Si custom intervalle, deux calendriers */}
+          {period === "custom" && (
+            <div className="flex gap-3 items-center">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.start && "text-muted-foreground")}>
+                    {customRange.start ? format(customRange.start, "dd/MM/yyyy") : "Début"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <Calendar
+                    mode="single"
+                    selected={customRange.start}
+                    onSelect={(v) => setCustomRange(cr => ({...cr, start: v ?? null }))}
+                  />
+                </PopoverContent>
+              </Popover>
+              <span>&rarr;</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.end && "text-muted-foreground")}>
+                    {customRange.end ? format(customRange.end, "dd/MM/yyyy") : "Fin"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <Calendar
+                    mode="single"
+                    selected={customRange.end}
+                    onSelect={(v) => setCustomRange(cr => ({...cr, end: v ?? null }))}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm">Date</Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={d => d && setDate(d)}
+              />
+            </PopoverContent>
+          </Popover>
+          {/* Multi-sélecteurs Salles/Tables */}
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Salles&nbsp;:</span>
+            <div className="flex gap-2 flex-wrap">
+              {salleOptions.map(opt => (
+                <label key={opt.value} className="flex items-center gap-1">
+                  <Checkbox checked={selectedSalleIds.includes(opt.value)}
+                    onCheckedChange={() => handleSalleSelect(opt.value)}
+                    id={`salle-${opt.value}`} />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Tables&nbsp;:</span>
+            <div className="flex gap-2 flex-wrap">
+              {tableOptions.map(opt => (
+                <label key={opt.value} className="flex items-center gap-1">
+                  <Checkbox checked={selectedTableIds.includes(opt.value)}
+                    onCheckedChange={() => handleTableSelect(opt.value)}
+                    id={`table-${opt.value}`}/>
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          {/* Plage horaire */}
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Horaires&nbsp;:</span>
+            <div className="flex gap-2">
+              {TIME_FILTERS.map(opt => (
+                <label key={opt.key} className="flex items-center gap-1">
+                  <Checkbox checked={selectedTimes.includes(opt.key)}
+                    onCheckedChange={() => handleTimeSelect(opt.key)}
+                    id={`time-${opt.key}`}/>
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Affichage du libellé période */}
       {getPeriodLabel() && (
         <div className="mb-5 text-muted-foreground text-sm font-medium">
@@ -204,120 +328,6 @@ const Statistiques = () => {
         personnes={totalPersonnes}
         jours={nbJours}
       />
-
-      {/* Filtres */}
-      <div className="flex flex-wrap gap-4 items-center bg-muted py-3 px-4 mb-4 rounded-lg">
-        {/* Période principale + navigation */}
-        <div className="flex gap-2 flex-wrap items-center">
-          {/* Grouper les deux boutons navigation ensemble */}
-          <div className="flex gap-1">
-            <Button variant="secondary" size="sm" onClick={() => handleNavigate("prev")}>
-              <ChevronLeft className="w-4 h-4" /> 
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => handleNavigate("next")}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-          {PERIODS.map((p) => (
-            <Button
-              key={p.key}
-              variant={period === p.key ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPeriod(p.key)}
-            >
-              {p.label}
-            </Button>
-          ))}
-        </div>
-        {/* Si custom intervalle, deux calendriers */}
-        {period === "custom" && (
-          <div className="flex gap-3 items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.start && "text-muted-foreground")}>
-                  {customRange.start ? format(customRange.start, "dd/MM/yyyy") : "Début"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <Calendar
-                  mode="single"
-                  selected={customRange.start}
-                  onSelect={(v) => setCustomRange(cr => ({...cr, start: v ?? null }))}
-                />
-              </PopoverContent>
-            </Popover>
-            <span>&rarr;</span>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.end && "text-muted-foreground")}>
-                  {customRange.end ? format(customRange.end, "dd/MM/yyyy") : "Fin"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <Calendar
-                  mode="single"
-                  selected={customRange.end}
-                  onSelect={(v) => setCustomRange(cr => ({...cr, end: v ?? null }))}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm">Date</Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={d => d && setDate(d)}
-            />
-          </PopoverContent>
-        </Popover>
-
-        {/* Multi-sélecteurs Salles/Tables */}
-        <div className="flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground">Salles&nbsp;:</span>
-          <div className="flex gap-2 flex-wrap">
-            {salleOptions.map(opt => (
-              <label key={opt.value} className="flex items-center gap-1">
-                <Checkbox checked={selectedSalleIds.includes(opt.value)} 
-                  onCheckedChange={() => handleSalleSelect(opt.value)}
-                  id={`salle-${opt.value}`} />
-                <span>{opt.label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground">Tables&nbsp;:</span>
-          <div className="flex gap-2 flex-wrap">
-            {tableOptions.map(opt => (
-              <label key={opt.value} className="flex items-center gap-1">
-                <Checkbox checked={selectedTableIds.includes(opt.value)} 
-                  onCheckedChange={() => handleTableSelect(opt.value)}
-                  id={`table-${opt.value}`}/>
-                <span>{opt.label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-        {/* Plage horaire */}
-        <div className="flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground">Horaires&nbsp;:</span>
-          <div className="flex gap-2">
-            {TIME_FILTERS.map(opt => (
-              <label key={opt.key} className="flex items-center gap-1">
-                <Checkbox checked={selectedTimes.includes(opt.key)}
-                  onCheckedChange={() => handleTimeSelect(opt.key)}
-                  id={`time-${opt.key}`}/>
-                <span>{opt.label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Graphe courbe réservations */}
       <Card className="mb-6">
