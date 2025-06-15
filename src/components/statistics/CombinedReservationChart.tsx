@@ -42,11 +42,11 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
   const filteredData = data.filter(d => d.reservations !== null && d.personnes !== null);
 
   // Trouver min et max globaux pour reservations/personnes
-  const allValues = filteredData.flatMap(d => 
+  const allValues = filteredData.flatMap(d =>
     [d.reservations ?? 0, d.personnes ?? 0]
   );
-  const minValue = Math.min(...allValues, 0); // Commencer à 0 au moins
-  const maxValue = Math.max(...allValues, 5); // Si tout est à 0, avoir au moins 5
+  const minValue = Math.min(...allValues, 0);
+  const maxValue = Math.max(...allValues, 5);
 
   return (
     <ResponsiveContainer width="100%" height={260}>
@@ -63,22 +63,14 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           allowDecimals={false}
           domain={[minValue, maxValue]}
           tick={{ fontSize: 12, fill: "#64748b" }}
-          label={{ value: "Réservations", angle: -90, position: "insideLeft", offset: -5 }}
-        />
-        <YAxis
-          yAxisId="right"
-          orientation="right"
-          allowDecimals={false}
-          domain={[minValue, maxValue]}
-          tick={{ fontSize: 12, fill: "#64748b" }}
-          label={{ value: "Personnes", angle: 90, position: "insideRight", offset: 10 }}
+          label={{ value: "Nombre", angle: -90, position: "insideLeft", offset: -5 }}
         />
         <Tooltip
           labelFormatter={val =>
             val instanceof Date
               ? (period === "annee" || period === "12mois"
-                  ? val.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
-                  : val.toLocaleDateString("fr-FR"))
+                ? val.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+                : val.toLocaleDateString("fr-FR"))
               : String(val)
           }
           formatter={(value: any, name: string) =>
@@ -90,7 +82,7 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           }
         />
         <Legend />
-        {/* L'ordre définit celui de la légende */}
+        {/* Ordre de la légende : Réservations (ligne) d'abord, Personnes (barres) ensuite */}
         <Line
           type="monotone"
           dataKey="reservations"
@@ -108,7 +100,7 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           name="Personnes"
           barSize={14}
           radius={[2, 2, 0, 0]}
-          yAxisId="right"
+          yAxisId="left"
         />
       </ComposedChart>
     </ResponsiveContainer>
