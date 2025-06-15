@@ -81,14 +81,7 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           }
         />
         <Legend />
-        <Bar
-          dataKey="personnes"
-          fill="#60a5fa"
-          name="Personnes"
-          barSize={14}
-          radius={[2, 2, 0, 0]}
-          yAxisId="right"
-        />
+        {/* Mettre la courbe (Réservations) AVANT les barres (Personnes) pour inverser l'ordre de la légende */}
         <Line
           type="monotone"
           dataKey="reservations"
@@ -99,6 +92,14 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           connectNulls={false}
           isAnimationActive={false}
           yAxisId="left"
+        />
+        <Bar
+          dataKey="personnes"
+          fill="#60a5fa"
+          name="Personnes"
+          barSize={14}
+          radius={[2, 2, 0, 0]}
+          yAxisId="right"
         />
       </ComposedChart>
     </ResponsiveContainer>
