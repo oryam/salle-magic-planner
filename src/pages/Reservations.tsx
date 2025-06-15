@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,8 +13,7 @@ import FiltersBar from '@/components/FiltersBar';
 import { format, addDays, addMonths, addYears, addWeeks, startOfDay, startOfMonth, startOfYear, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ReservationCalendarView from '@/components/ReservationCalendarView';
-
-type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee' | '12mois' | 'custom';
+import { PeriodType } from '@/types/restaurant';
 
 const ALL_SALLES_VALUE = "all";
 

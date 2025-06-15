@@ -1,6 +1,7 @@
 
 export type TableShape = 'ronde' | 'carre' | 'rectangulaire';
 export type TableStatus = 'libre' | 'reservee' | 'attente';
+export type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee' | '12mois' | 'custom';
 
 export type SalleId = string;
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -6,9 +5,7 @@ import { ArrowLeft, ArrowRight, Search, Calendar as CalendarIcon } from 'lucide-
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import SalleSelector from '@/components/SalleSelector';
-import { Salle } from '@/types/restaurant';
-
-type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee' | '12mois' | 'custom';
+import { Salle, PeriodType } from '@/types/restaurant';
 
 interface FiltersBarProps {
   // Sélection des salles
