@@ -18,7 +18,7 @@ export const SimplePagination: React.FC<SimplePaginationProps> = ({
   setPerPage,
   perPageOptions = [10, 50, 200],
 }) => {
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1 && perPage !== -1) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-2 justify-between p-2 text-xs">
@@ -30,46 +30,50 @@ export const SimplePagination: React.FC<SimplePaginationProps> = ({
           onChange={e => setPerPage(Number(e.target.value))}
         >
           {perPageOptions.map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
+            <option key={opt} value={opt}>
+              {opt === -1 ? 'Tout' : opt}
+            </option>
           ))}
         </select>
       </div>
-      <div className="flex items-center gap-1">
-        <button
-          className="border px-2 py-1 rounded disabled:opacity-50"
-          onClick={() => setPage(1)}
-          disabled={currentPage === 1}
-        >&lt;&lt;</button>
-        <button
-          className="border px-2 py-1 rounded disabled:opacity-50"
-          onClick={() => setPage(currentPage - 1)}
-          disabled={currentPage === 1}
-        >&lt;</button>
-        <span>
-          Page{" "}
-          <input
-            type="number"
-            className="w-12 border rounded px-1"
-            value={currentPage}
-            min={1}
-            max={totalPages}
-            onChange={e =>
-              setPage(Math.max(1, Math.min(totalPages, Number(e.target.value))))
-            }
-          />{" "}
-          / {totalPages}
-        </span>
-        <button
-          className="border px-2 py-1 rounded disabled:opacity-50"
-          onClick={() => setPage(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >&gt;</button>
-        <button
-          className="border px-2 py-1 rounded disabled:opacity-50"
-          onClick={() => setPage(totalPages)}
-          disabled={currentPage === totalPages}
-        >&gt;&gt;</button>
-      </div>
+      {perPage !== -1 && totalPages > 1 && (
+        <div className="flex items-center gap-1">
+          <button
+            className="border px-2 py-1 rounded disabled:opacity-50"
+            onClick={() => setPage(1)}
+            disabled={currentPage === 1}
+          >&lt;&lt;</button>
+          <button
+            className="border px-2 py-1 rounded disabled:opacity-50"
+            onClick={() => setPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >&lt;</button>
+          <span>
+            Page{" "}
+            <input
+              type="number"
+              className="w-12 border rounded px-1"
+              value={currentPage}
+              min={1}
+              max={totalPages}
+              onChange={e =>
+                setPage(Math.max(1, Math.min(totalPages, Number(e.target.value))))
+              }
+            />{" "}
+            / {totalPages}
+          </span>
+          <button
+            className="border px-2 py-1 rounded disabled:opacity-50"
+            onClick={() => setPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >&gt;</button>
+          <button
+            className="border px-2 py-1 rounded disabled:opacity-50"
+            onClick={() => setPage(totalPages)}
+            disabled={currentPage === totalPages}
+          >&gt;&gt;</button>
+        </div>
+      )}
     </div>
   );
 };

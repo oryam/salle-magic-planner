@@ -6,6 +6,7 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import { Reservation, Table as TableType } from "@/types/restaurant";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import SimplePagination from "@/components/SimplePagination";
 
 type SortField = 'table' | 'date' | 'client';
 type SortDirection = 'asc' | 'desc';
@@ -18,6 +19,8 @@ type Props = {
 const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
 
   // Créer un map pour récupérer rapidement les informations des tables
   const tableMap = useMemo(() => {
@@ -51,6 +54,14 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
     });
   }, [reservations, sortField, sortDirection, tableMap]);
 
+  // Pagination
+  const totalPages = perPage === -1 ? 1 : Math.ceil(sortedReservations.length / perPage);
+  const paginatedReservations = useMemo(() => {
+    if (perPage === -1) return sortedReservations;
+    const startIndex = (currentPage - 1) * perPage;
+    return sortedReservations.slice(startIndex, startIndex + perPage);
+  }, [sortedReservations, currentPage, perPage]);
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -58,6 +69,12 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
       setSortField(field);
       setSortDirection('asc');
     }
+    setCurrentPage(1); // Reset to first page when sorting
+  };
+
+  const handlePerPageChange = (newPerPage: number) => {
+    setPerPage(newPerPage);
+    setCurrentPage(1); // Reset to first page when changing per page
   };
 
   const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => {
@@ -105,14 +122,14 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedReservations.length === 0 ? (
+            {paginatedReservations.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground">
                   Aucune réservation trouvée pour cette période
                 </TableCell>
               </TableRow>
             ) : (
-              sortedReservations.map((reservation) => {
+              paginatedReservations.map((reservation) => {
                 const table = tableMap.get(reservation.tableId);
                 return (
                   <TableRow key={reservation.id}>
@@ -132,8 +149,20 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
           </TableBody>
         </Table>
       </div>
-      <div className="mt-2 text-sm text-muted-foreground">
-        {reservations.length} réservation{reservations.length > 1 ? 's' : ''} trouvée{reservations.length > 1 ? 's' : ''}
+      
+      <div className="mt-2 flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          {reservations.length} réservation{reservations.length > 1 ? 's' : ''} trouvée{reservations.length > 1 ? 's' : ''}
+        </div>
+        
+        <SimplePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          perPage={perPage}
+          setPage={setCurrentPage}
+          setPerPage={handlePerPageChange}
+          perPageOptions={[5, 20, 100, -1]}
+        />
       </div>
     </div>
   );
