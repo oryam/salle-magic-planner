@@ -13,6 +13,22 @@ import { cn } from "@/lib/utils";
 import ReservationLineChart from "@/components/statistics/ReservationLineChart";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+const TIME_FILTERS = [
+  { key: "all", label: "Toutes" },
+  { key: "morning", label: "Matin (6h-11h)" },
+  { key: "midday", label: "Midi (11h01-15h)" },
+  { key: "evening", label: "Soir (18h-23h30)" },
+];
+
+const PERIODS = [
+  { key: "jour", label: "Jour" },
+  { key: "semaine", label: "Semaine" },
+  { key: "mois", label: "Mois" },
+  { key: "annee", label: "Année" },
+  { key: "12mois", label: "12 derniers mois" },
+  { key: "custom", label: "Intervalle personnalisé" },
+];
+
 function filterByTimeSlot(hourStr?: string, selTimes?: string[]) {
   // Retourne true si la case horaire correspond à une case sélectionnée
   if (!selTimes || selTimes.length === 0 || selTimes.includes("all")) return true;
@@ -29,18 +45,13 @@ function filterByTimeSlot(hourStr?: string, selTimes?: string[]) {
   return false;
 }
 
-import StatisticsFilters from "@/components/statistics/StatisticsFilters";
-import StatisticsIndicators from "@/components/statistics/StatisticsIndicators";
-import StatisticsCharts from "@/components/statistics/StatisticsCharts";
-import { PERIODS, TIME_FILTERS } from "@/components/statistics/filtersConfig";
-
 const Statistiques = () => {
   const { salles, tables, reservations } = useRestaurant();
 
   // Filtres d’état
   const [period, setPeriod] = useState<string>("mois");
   const [date, setDate] = useState<Date>(new Date());
-  const [customRange, setCustomRange] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null });
+  const [customRange, setCustomRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null });
   const [selectedSalleIds, setSelectedSalleIds] = useState<string[]>([]);
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(["all"]);
@@ -182,26 +193,89 @@ const Statistiques = () => {
   return (
     <div className="container max-w-6xl mx-auto py-6">
       <h2 className="font-bold text-2xl mb-2">Statistiques des réservations</h2>
+      
+      {/* SECTION 1 : Filtres de date/période - toujours visibles */}
+      <div className="mb-4 flex flex-wrap gap-4 items-center bg-muted py-3 px-4 rounded-lg">
+        <div className="flex gap-2 flex-wrap items-center">
+          {/* Boutons navigation période */}
+          <div className="flex gap-1">
+            <Button variant="secondary" size="sm" onClick={() => handleNavigate("prev")}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => handleNavigate("next")}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+          {/* Choix de période */}
+          {PERIODS.map((p) => (
+            <Button
+              key={p.key}
+              variant={period === p.key ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPeriod(p.key)}
+            >
+              {p.label}
+            </Button>
+          ))}
+        </div>
+        {/* Sélection de date ou intervalle personnalisé */}
+        {period === "custom" ? (
+          <div className="flex gap-3 items-center">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.start && "text-muted-foreground")}>
+                  {customRange.start ? format(customRange.start, "dd/MM/yyyy") : "Début"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <Calendar
+                  mode="single"
+                  selected={customRange.start}
+                  onSelect={(v) => setCustomRange(cr => ({...cr, start: v ?? null }))}
+                />
+              </PopoverContent>
+            </Popover>
+            <span>&rarr;</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.end && "text-muted-foreground")}>
+                  {customRange.end ? format(customRange.end, "dd/MM/yyyy") : "Fin"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <Calendar
+                  mode="single"
+                  selected={customRange.end}
+                  onSelect={(v) => setCustomRange(cr => ({...cr, end: v ?? null }))}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        ) : (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm">Date</Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={d => d && setDate(d)}
+              />
+            </PopoverContent>
+          </Popover>
+        )}
 
-      <StatisticsFilters
-        period={period}
-        setPeriod={setPeriod}
-        date={date}
-        setDate={setDate}
-        customRange={customRange}
-        setCustomRange={setCustomRange}
-        salleOptions={salleOptions}
-        selectedSalleIds={selectedSalleIds}
-        handleSalleSelect={handleSalleSelect}
-        tableOptions={tableOptions}
-        selectedTableIds={selectedTableIds}
-        handleTableSelect={handleTableSelect}
-        selectedTimes={selectedTimes}
-        handleTimeSelect={handleTimeSelect}
-        advancedFiltersVisible={advancedFiltersVisible}
-        setAdvancedFiltersVisible={setAdvancedFiltersVisible}
-        onNavigate={handleNavigate}
-      />
+        {/* BOUTON POUR AFFICHER/MASQUER LES FILTRES AVANCÉS */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={() => setAdvancedFiltersVisible(v => !v)}
+        >
+          {advancedFiltersVisible ? "Masquer les filtres avancés" : "Afficher les filtres avancés"}
+        </Button>
+      </div>
 
       {/* Libellé période affichée */}
       {getPeriodLabel() && (
@@ -210,15 +284,86 @@ const Statistiques = () => {
         </div>
       )}
 
-      <StatisticsIndicators
+      {/* SECTION 2 : Filtres avancés - salles, tables, horaires... */} 
+      {advancedFiltersVisible && (
+        <div className="flex flex-wrap gap-4 items-center bg-muted py-3 px-4 mb-4 rounded-lg">
+          {/* Salles */}
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Salles&nbsp;:</span>
+            <div className="flex gap-2 flex-wrap">
+              {salleOptions.map(opt => (
+                <label key={opt.value} className="flex items-center gap-1">
+                  <Checkbox checked={selectedSalleIds.includes(opt.value)}
+                    onCheckedChange={() => handleSalleSelect(opt.value)}
+                    id={`salle-${opt.value}`} />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          {/* Tables */}
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Tables&nbsp;:</span>
+            <div className="flex gap-2 flex-wrap">
+              {tableOptions.map(opt => (
+                <label key={opt.value} className="flex items-center gap-1">
+                  <Checkbox checked={selectedTableIds.includes(opt.value)}
+                    onCheckedChange={() => handleTableSelect(opt.value)}
+                    id={`table-${opt.value}`}/>
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          {/* Plage horaire */}
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Horaires&nbsp;:</span>
+            <div className="flex gap-2">
+              {TIME_FILTERS.map(opt => (
+                <label key={opt.key} className="flex items-center gap-1">
+                  <Checkbox checked={selectedTimes.includes(opt.key)}
+                    onCheckedChange={() => handleTimeSelect(opt.key)}
+                    id={`time-${opt.key}`}/>
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Indicateurs principaux */}
+      <StatisticSummary
         reservations={totalReservations}
         personnes={totalPersonnes}
         jours={nbJours}
       />
 
-      <StatisticsCharts data={chartData} />
+      {/* Graphe courbe réservations */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>
+            Historique du nombre de réservations
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ReservationLineChart data={chartData} />
+        </CardContent>
+      </Card>
+
+      {/* Graphe barres personnes */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>
+            Historique du nombre de personnes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <StatisticsChart data={chartData} />
+        </CardContent>
+      </Card>
     </div>
   );
-};
+}
 
 export default Statistiques;
