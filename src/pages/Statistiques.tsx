@@ -172,10 +172,15 @@ const Statistiques = () => {
       <div className="flex flex-wrap gap-4 items-center bg-muted py-3 px-4 mb-4 rounded-lg">
         {/* Période principale + navigation */}
         <div className="flex gap-2 flex-wrap items-center">
-          {/* Bouton précédent */}
-          <Button variant="secondary" size="sm" onClick={() => handleNavigate("prev")}>
-            <ChevronLeft className="w-4 h-4" /> 
-          </Button>
+          {/* Grouper les deux boutons navigation ensemble */}
+          <div className="flex gap-1">
+            <Button variant="secondary" size="sm" onClick={() => handleNavigate("prev")}>
+              <ChevronLeft className="w-4 h-4" /> 
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => handleNavigate("next")}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
           {PERIODS.map((p) => (
             <Button
               key={p.key}
@@ -186,10 +191,6 @@ const Statistiques = () => {
               {p.label}
             </Button>
           ))}
-          {/* Bouton suivant */}
-          <Button variant="secondary" size="sm" onClick={() => handleNavigate("next")}>
-            <ChevronRight className="w-4 h-4" />
-          </Button>
         </div>
         {/* Si custom intervalle, deux calendriers */}
         {period === "custom" && (
