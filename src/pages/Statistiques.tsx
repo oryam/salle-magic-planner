@@ -73,6 +73,37 @@ const Statistiques = () => {
     setDate(newDate);
   };
 
+  // Ajout de la fonction pour déterminer le libellé
+  function getPeriodLabel() {
+    const opts = { locale: fr };
+    if (period === "jour") {
+      return `Période affichée : ${format(date, "EEEE dd MMMM yyyy", opts)}`;
+    }
+    if (period === "semaine") {
+      const start = new Date(date);
+      start.setDate(date.getDate() - date.getDay() + 1); // lundi
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      return `Période affichée : Semaine du ${format(start, "dd/MM/yyyy", opts)} au ${format(end, "dd/MM/yyyy", opts)}`;
+    }
+    if (period === "mois") {
+      return `Période affichée : ${format(date, "MMMM yyyy", opts)}`;
+    }
+    if (period === "annee") {
+      return `Période affichée : Année ${format(date, "yyyy", opts)}`;
+    }
+    if (period === "12mois") {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth() - 11, 1, 0,0,0,0);
+      const end = now;
+      return `Période affichée : Du ${format(start, "MMMM yyyy", opts)} à ${format(end, "MMMM yyyy", opts)}`;
+    }
+    if (period === "custom" && customRange.start && customRange.end) {
+      return `Période affichée : Du ${format(customRange.start, "dd/MM/yyyy", opts)} au ${format(customRange.end, "dd/MM/yyyy", opts)}`;
+    }
+    return null;
+  }
+
   // Calcul des filtres de période
   const now = new Date();
   let startDate: Date, endDate: Date;
@@ -159,7 +190,13 @@ const Statistiques = () => {
   // Sélecteur de période et d’intervalle
   return (
     <div className="container max-w-6xl mx-auto py-6">
-      <h2 className="font-bold text-2xl mb-6">Statistiques des réservations</h2>
+      <h2 className="font-bold text-2xl mb-2">Statistiques des réservations</h2>
+      {/* Affichage du libellé période */}
+      {getPeriodLabel() && (
+        <div className="mb-5 text-muted-foreground text-sm font-medium">
+          {getPeriodLabel()}
+        </div>
+      )}
 
       {/* Indicateurs principaux */}
       <StatisticSummary
