@@ -6,8 +6,7 @@ import { Calendar, ArrowLeft, ArrowRight } from "lucide-react";
 import { format, startOfWeek, endOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
 import React from "react";
-
-type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
+import { PeriodType } from "@/types/restaurant";
 
 interface PeriodSelectorProps {
   period: PeriodType;
@@ -34,6 +33,12 @@ const PeriodSelector: React.FC<PeriodSelectorProps> = ({
         return format(currentDate, 'MMMM yyyy', { locale: fr });
       case 'annee':
         return format(currentDate, 'yyyy', { locale: fr });
+      case '12mois':
+        return `12 derniers mois (${format(currentDate, 'yyyy', { locale: fr })})`;
+      case 'custom':
+        return 'Période personnalisée';
+      default:
+        return format(currentDate, 'MMMM yyyy', { locale: fr });
     }
   };
 

@@ -4,8 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, eachDayOfInterval, eachWeekOfInterval } from "date-fns";
 import { fr } from "date-fns/locale";
-
-type PeriodType = "jour" | "semaine" | "mois" | "annee";
+import { PeriodType } from "@/types/restaurant";
 
 interface ReservationCalendarViewProps {
   tablesWithReservations: any[];
@@ -53,6 +52,20 @@ const ReservationCalendarView = ({
         m.setMonth(m.getMonth() + 1);
       }
       return months;
+    }
+    if (period === "12mois") {
+      const start = startOfYear(currentDate);
+      const end = endOfYear(currentDate);
+      const months: Date[] = [];
+      let m = new Date(start);
+      while (m <= end) {
+        months.push(new Date(m));
+        m.setMonth(m.getMonth() + 1);
+      }
+      return months;
+    }
+    if (period === "custom") {
+      return [currentDate];
     }
     return [currentDate];
   };
@@ -107,7 +120,7 @@ const ReservationCalendarView = ({
         <CardTitle className="text-base sm:text-lg">Calendrier des réservations</CardTitle>
       </CardHeader>
       <CardContent>
-        {period === "annee" ? (
+        {(period === "annee" || period === "12mois") ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {dateRange.map((month: Date) => {
               const monthLabel = format(month, "MMMM yyyy", { locale: fr });
