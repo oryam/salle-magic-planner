@@ -2,6 +2,14 @@ import React, { useRef } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 // --- Helpers CSV ---
 function formatDateFr(date: Date | string | null | undefined) {
@@ -298,6 +306,114 @@ const ImportExport = () => {
           </div>
         </div>
       </Card>
+
+      {/* --- TABLEAUX DE DONNÉES --- */}
+      <div className="space-y-8 mt-8">
+        {/* Tableau Salles */}
+        <Card>
+          <div className="px-4 pt-4 pb-2 font-semibold">Aperçu des salles</div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {SallesColumns.map((col) => (
+                    <TableHead key={col}>{col}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {salles.map((salle) => (
+                  <TableRow key={salle.id}>
+                    {SallesColumns.map((col) => (
+                      <TableCell key={col}>
+                        {salle[col as keyof typeof salle]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+                {salles.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={SallesColumns.length} className="text-center text-muted-foreground">
+                      Aucune salle
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+        {/* Tableau Tables */}
+        <Card>
+          <div className="px-4 pt-4 pb-2 font-semibold">Aperçu des tables</div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {TablesColumns.map((col) => (
+                    <TableHead key={col}>{col}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tables.map((table) => {
+                  const t = tableToRow(table);
+                  return (
+                    <TableRow key={table.id}>
+                      {TablesColumns.map((col) => (
+                        <TableCell key={col}>
+                          {t[col]}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })}
+                {tables.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={TablesColumns.length} className="text-center text-muted-foreground">
+                      Aucune table
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+        {/* Tableau Réservations */}
+        <Card>
+          <div className="px-4 pt-4 pb-2 font-semibold">Aperçu des réservations</div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {ReservationsColumns.map((col) => (
+                    <TableHead key={col}>{col}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reservations.map((r) => (
+                  <TableRow key={r.id}>
+                    {ReservationsColumns.map((col) => (
+                      <TableCell key={col}>
+                        {col === "date"
+                          ? formatDateFr(r.date)
+                          : (r as any)[col]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+                {reservations.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={ReservationsColumns.length} className="text-center text-muted-foreground">
+                      Aucune réservation
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
