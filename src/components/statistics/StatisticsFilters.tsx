@@ -1,4 +1,3 @@
-
 import React from "react";
 import { PERIODS, TIME_FILTERS } from "./filtersConfig";
 import { Button } from "@/components/ui/button";
@@ -126,9 +125,11 @@ const StatisticsFilters: React.FC<Props> = ({
           <div className="flex gap-2 flex-wrap">
             {salleOptions.map(opt => (
               <label key={opt.value} className="flex items-center gap-1">
-                <Checkbox checked={selectedSalleIds.includes(opt.value)}
-                  onCheckedChange={(_checked) => handleSalleSelect(opt.value)}
-                  id={`salle-${opt.value}`} />
+                <Checkbox
+                  checked={selectedSalleIds.includes(opt.value)}
+                  onCheckedChange={(_checked: boolean) => handleSalleSelect(opt.value)}
+                  id={`salle-${opt.value}`}
+                />
                 <span>{opt.label}</span>
               </label>
             ))}
@@ -140,9 +141,11 @@ const StatisticsFilters: React.FC<Props> = ({
           <div className="flex gap-2 flex-wrap">
             {tableOptions.map(opt => (
               <label key={opt.value} className="flex items-center gap-1">
-                <Checkbox checked={selectedTableIds.includes(opt.value)}
-                  onCheckedChange={(_checked) => handleTableSelect(opt.value)}
-                  id={`table-${opt.value}`}/>
+                <Checkbox
+                  checked={selectedTableIds.includes(opt.value)}
+                  onCheckedChange={(_checked: boolean) => handleTableSelect(opt.value)}
+                  id={`table-${opt.value}`}
+                />
                 <span>{opt.label}</span>
               </label>
             ))}
@@ -154,9 +157,11 @@ const StatisticsFilters: React.FC<Props> = ({
           <div className="flex gap-2">
             {TIME_FILTERS.map(opt => (
               <label key={opt.key} className="flex items-center gap-1">
-                <Checkbox checked={selectedTimes.includes(opt.key)}
-                  onCheckedChange={(_checked) => handleTimeSelect(opt.key)}
-                  id={`time-${opt.key}`}/>
+                <Checkbox
+                  checked={selectedTimes.includes(opt.key)}
+                  onCheckedChange={(_checked: boolean) => handleTimeSelect(opt.key)}
+                  id={`time-${opt.key}`}
+                />
                 <span>{opt.label}</span>
               </label>
             ))}
@@ -168,4 +173,3 @@ const StatisticsFilters: React.FC<Props> = ({
 );
 
 export default StatisticsFilters;
-
