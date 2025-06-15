@@ -2,20 +2,17 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, ArrowRight, Users, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Users, Calendar, Edit, Trash2 } from 'lucide-react';
 import { useRestaurant } from '@/context/RestaurantContext';
 import ReservationForm from '@/components/ReservationForm';
 import TableIcon from '@/components/TableIcon';
-import { format, addDays, addMonths, addYears, addWeeks, startOfDay, startOfMonth, startOfYear, startOfWeek, endOfWeek } from 'date-fns';
+import FiltersBar from '@/components/FiltersBar';
+import { format, addDays, addMonths, addYears, addWeeks, startOfDay, startOfMonth, startOfYear, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Calendar as CalendarIcon } from 'lucide-react'; // s'assure d'importer le bon icône
 import ReservationCalendarView from '@/components/ReservationCalendarView';
-import SalleSelector from '@/components/SalleSelector';
-import { Search } from 'lucide-react'; // Ajout pour l'icône Loupe
 
 type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
 
@@ -31,8 +28,8 @@ const Reservations = () => {
   const [newReservationDate, setNewReservationDate] = useState<Date | null>(null);
   const [newReservationTableId, setNewReservationTableId] = useState<string | null>(null);
 
-  const [selectedSalleId, setSelectedSalleId] = useState<string>(ALL_SALLES_VALUE); // valeur "all" = toutes les salles
-  const [searchTerm, setSearchTerm] = useState<string>(""); // état recherche
+  const [selectedSalleId, setSelectedSalleId] = useState<string>(ALL_SALLES_VALUE);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const getCurrentPeriodStart = () => {
     switch (period) {
@@ -56,21 +53,6 @@ const Reservations = () => {
           return direction === 'next' ? addYears(prev, 1) : addYears(prev, -1);
       }
     });
-  };
-
-  const formatPeriodDisplay = () => {
-    switch (period) {
-      case 'jour':
-        return format(currentDate, 'EEEE dd MMMM yyyy', { locale: fr });
-      case 'semaine':
-        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-        return `Semaine du ${format(weekStart, 'dd/MM', { locale: fr })} au ${format(weekEnd, 'dd/MM/yyyy', { locale: fr })}`;
-      case 'mois':
-        return format(currentDate, 'MMMM yyyy', { locale: fr });
-      case 'annee':
-        return format(currentDate, 'yyyy', { locale: fr });
-    }
   };
 
   const formatReservationDate = (date: Date) => {
@@ -144,7 +126,7 @@ const Reservations = () => {
 
   const handleOpenReservationFormForTable = (tableId: string) => {
     setNewReservationTableId(tableId);
-    setNewReservationDate(null); // ne pas pré-sélectionner de date
+    setNewReservationDate(null);
   };
 
   const handleCloseReservationForm = () => {
@@ -152,7 +134,6 @@ const Reservations = () => {
     setNewReservationTableId(null);
   };
 
-  // Fonction pour retrouver le nom de la salle à partir de l'id
   const getSalleName = (salleId: string) => {
     const salle = salles.find(s => s.id === salleId);
     return salle ? salle.nom : "";
@@ -172,72 +153,24 @@ const Reservations = () => {
             salleId={selectedSalleId === ALL_SALLES_VALUE ? undefined : selectedSalleId}
           />
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
-          <SalleSelector
-            salles={salles}
-            selectedSalleId={selectedSalleId}
-            onSalleChange={setSelectedSalleId}
-            className="w-56"
-            showAllOption // active l'option "Tout voir"
-          />
-          {/* Recherche nom client */}
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">
-                <Search className="h-4 w-4" />
-              </span>
-              <input
-                type="text"
-                placeholder="Rechercher un client"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-2 border border-input rounded-md w-full text-sm bg-background"
-              />
-            </div>
-          </div>
-        </div>
-        
-        {/* Contrôles de période */}
-        <Card className="mb-4 sm:mb-6">
-          <CardContent className="p-3 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
-              <div className="flex items-center space-x-2 sm:space-x-4 w-full">
-                <Select value={period} onValueChange={(value: PeriodType) => setPeriod(value)}>
-                  <SelectTrigger className="w-24 sm:w-32 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="jour">Jour</SelectItem>
-                    <SelectItem value="semaine">Semaine</SelectItem>
-                    <SelectItem value="mois">Mois</SelectItem>
-                    <SelectItem value="annee">Année</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <div className="flex items-center space-x-1 sm:space-x-2">
-                  <Button variant="outline" size="sm" className="px-2 py-1 sm:px-3 sm:py-2" onClick={() => navigatePeriod('prev')}>
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="font-medium min-w-32 sm:min-w-48 text-center text-xs sm:text-base">{formatPeriodDisplay()}</span>
-                  <Button variant="outline" size="sm" className="px-2 py-1 sm:px-3 sm:py-2" onClick={() => navigatePeriod('next')}>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                {/* Nouveau bouton "vue calendrier" */}
-                <Button
-                  type="button"
-                  variant={calendarView ? "default" : "outline"}
-                  size="icon"
-                  aria-label="Vue calendrier"
-                  className="ml-2"
-                  onClick={() => setCalendarView(v => !v)}
-                >
-                  <CalendarIcon className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
+        {/* Nouvelle barre de filtres modulaire */}
+        <FiltersBar
+          salles={salles}
+          selectedSalleId={selectedSalleId}
+          onSalleChange={setSelectedSalleId}
+          showAllSallesOption={true}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Rechercher un client"
+          period={period}
+          onPeriodChange={setPeriod}
+          currentDate={currentDate}
+          onNavigate={navigatePeriod}
+          calendarView={calendarView}
+          onCalendarViewToggle={() => setCalendarView(v => !v)}
+          className="mb-4 sm:mb-6"
+        />
 
         {/* Indicateurs clés */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6 mb-4 sm:mb-6">
@@ -312,7 +245,6 @@ const Reservations = () => {
                           >
                             Table {table.numero}
                           </button>
-                          {/* Affiche le nom de la salle si le mode "Tout voir" est activé */}
                           {selectedSalleId === ALL_SALLES_VALUE && (
                             <span className="text-xs text-muted-foreground">
                               {getSalleName(table.salleId)}
@@ -340,7 +272,6 @@ const Reservations = () => {
                               <DialogHeader>
                                 <DialogTitle className="text-base sm:text-lg">
                                   Réservations - Table {table.numero}
-                                  {/* Affiche le nom de la salle dans le titre si "Tout voir" */}
                                   {selectedSalleId === ALL_SALLES_VALUE && (
                                     <span className="block text-xs text-muted-foreground font-normal">
                                       {getSalleName(table.salleId)}
