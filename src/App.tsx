@@ -1,4 +1,5 @@
 
+import React, { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,9 +16,11 @@ import NotFound from "./pages/NotFound";
 import ImportExport from "@/pages/ImportExport";
 import Statistiques from "@/pages/Statistiques";
 import { useIsMobile } from "@/hooks/use-mobile";
-import React from "react";
+import { StartupGuide } from "@/components/StartupGuide";
 
 const queryClient = new QueryClient();
+
+const LOCALSTORAGE_KEY = "hideStartupGuide";
 
 const App = () => {
   // On utilise un composant wrapper ici pour accéder à useIsMobile
@@ -45,6 +48,18 @@ const App = () => {
     );
   }
 
+  // Nouveau : contrôle de l’affichage du guide de démarrage
+  const [showGuide, setShowGuide] = useState(false);
+
+  useEffect(() => {
+    const hideGuide = localStorage.getItem(LOCALSTORAGE_KEY);
+    setShowGuide(hideGuide !== "1");
+  }, []);
+
+  const handleCloseGuide = () => {
+    setShowGuide(false);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -52,6 +67,7 @@ const App = () => {
         <Sonner />
         <RestaurantProvider>
           <BrowserRouter>
+            <StartupGuide open={showGuide} onClose={handleCloseGuide} />
             <MainWrapper />
           </BrowserRouter>
         </RestaurantProvider>
