@@ -46,128 +46,79 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
   ];
   const [salles, setSalles] = useState<Salle[]>(defaultSalles);
 
-  // Tables par défaut
-  const tableData: Table[] = [
-    {
-      id: '1',
-      numero: 1,
-      forme: 'ronde',
-      nombrePersonnes: 6,
-      salleId: 'salle1',
-      position: { x: 120, y: 110 }
-    },
-    {
-      id: '2',
-      numero: 2,
-      forme: 'carre',
-      nombrePersonnes: 4,
-      salleId: 'salle1',
-      position: { x: 230, y: 160 }
-    },
-    {
-      id: '3',
-      numero: 3,
-      forme: 'rectangulaire',
-      nombrePersonnes: 8,
-      salleId: 'salle2',
-      position: { x: 340, y: 210 },
-      rotation: 0
-    }
+  // Nouvelles tables : 2 en salle 1, 4 en salle 2, 6 en terrasse 1
+  const defaultTables: Table[] = [
+    // Salle 1 (2 tables)
+    { id: 't1', numero: 1, forme: 'ronde', nombrePersonnes: 6, salleId: 'salle1', position: { x: 80, y: 100 } },
+    { id: 't2', numero: 2, forme: 'carre', nombrePersonnes: 4, salleId: 'salle1', position: { x: 130, y: 150 } },
+    // Salle 2 (4 tables)
+    { id: 't3', numero: 3, forme: 'ronde', nombrePersonnes: 4, salleId: 'salle2', position: { x: 220, y: 100 } },
+    { id: 't4', numero: 4, forme: 'rectangulaire', nombrePersonnes: 8, salleId: 'salle2', position: { x: 300, y: 180 } },
+    { id: 't5', numero: 5, forme: 'carre', nombrePersonnes: 2, salleId: 'salle2', position: { x: 340, y: 210 } },
+    { id: 't6', numero: 6, forme: 'carre', nombrePersonnes: 2, salleId: 'salle2', position: { x: 180, y: 180 } },
+    // Terrasse 1 (6 tables)
+    { id: 't7', numero: 7, forme: 'ronde', nombrePersonnes: 5, salleId: 'terrasse1', position: { x: 80, y: 350 } },
+    { id: 't8', numero: 8, forme: 'carre', nombrePersonnes: 4, salleId: 'terrasse1', position: { x: 120, y: 380 } },
+    { id: 't9', numero: 9, forme: 'rectangulaire', nombrePersonnes: 6, salleId: 'terrasse1', position: { x: 200, y: 390 } },
+    { id: 't10', numero: 10, forme: 'carre', nombrePersonnes: 2, salleId: 'terrasse1', position: { x: 280, y: 350 } },
+    { id: 't11', numero: 11, forme: 'ronde', nombrePersonnes: 3, salleId: 'terrasse1', position: { x: 320, y: 370 } },
+    { id: 't12', numero: 12, forme: 'carre', nombrePersonnes: 2, salleId: 'terrasse1', position: { x: 360, y: 390 } },
   ];
 
-  const today = new Date();
-  const lastDayOfMonth = endOfMonth(today);
-
-  const defaultTables = [...tableData];
-
-  // Génère n réservations sur une période pour les tables disponibles
-  function generateSampleReservations(
-    refDate: Date,
-    months: number,
-    minPerMonth: number,
-    maxPerMonth: number,
-    tables: Table[]
-  ) {
+  // Générer 100 réservations pour les 12 tables, entre 01/01/2024 et 15/06/2025
+  function generateRandomReservations(
+    tables: Table[],
+    n: number,
+    start: Date,
+    end: Date
+  ): Reservation[] {
     const noms = [
       'M. Dupond', 'Patrick', 'Julie', 'Fatima', 'Guillaume',
       'Alice', 'Sophie', 'Karim', 'Laure', 'Xavier'
     ];
-    const heuresMatin = ['07:30', '09:30', '10:45'];
-    const heuresMidi = ['12:00', '12:30', '13:00', '14:15'];
-    const heuresSoir = ['18:30', '20:00', '21:00', '22:15'];
-    const reservations: Reservation[] = [];
-    let rid = 10; // Avoid collision with existing demos
+    const heures = [
+      "08:00", "09:30", "12:00", "12:30", "13:00",
+      "18:30", "19:30", "20:00", "21:00", "22:15"
+    ];
+    const resas: Reservation[] = [];
+    for (let i = 0; i < n; i++) {
+      // Date aléatoire
+      const d = new Date(
+        start.getTime() +
+          Math.random() * (end.getTime() - start.getTime())
+      );
+      // Heure aléatoire pour la réservation
+      const heureStr = heures[Math.floor(Math.random() * heures.length)];
+      const [h, m] = heureStr.split(":").map(Number);
+      d.setHours(h, m, 0, 0);
 
-    for (let m = 0; m <= months; m++) {
-      // Target month: add m months to refDate
-      const baseMonth = new Date(refDate.getFullYear(), refDate.getMonth() + m, 1);
-      const nbRes = Math.floor(Math.random() * (maxPerMonth - minPerMonth + 1)) + minPerMonth;
-      for (let i = 0; i < nbRes; i++) {
-        // Choose a date in the month (between 1 and 25 for simplicity)
-        const day = Math.floor(Math.random() * 25) + 1;
-        let date = new Date(baseMonth.getFullYear(), baseMonth.getMonth(), day);
-        // Randomly choose meal slot and hour
-        const slotType = Math.floor(Math.random() * 3);
-        let heure, heureArr, personnes;
-        if (slotType === 0) { // matin
-          heure = heuresMatin[Math.floor(Math.random() * heuresMatin.length)];
-          personnes = 2 + Math.floor(Math.random()*2);
-        } else if (slotType ===1) { // midi
-          heure = heuresMidi[Math.floor(Math.random() * heuresMidi.length)];
-          personnes = 2 + Math.floor(Math.random()*5);
-        } else { // soir
-          heure = heuresSoir[Math.floor(Math.random() * heuresSoir.length)];
-          personnes = 2 + Math.floor(Math.random()*6);
-        }
-        // S'assurer que l'heure est bien valide (string -> {h, mn})
-        heureArr = heure.split(':');
-        date.setHours(parseInt(heureArr[0]), parseInt(heureArr[1]));
-        // Table au hasard
-        const table = tables[Math.floor(Math.random()*tables.length)];
-        // Nom client fictif
-        const nomClient = noms[(rid + i)%noms.length] + ` (${m+1}/${i+1})`;
+      // Table aléatoire
+      const table = tables[Math.floor(Math.random() * tables.length)];
+      // Nombre de personnes (2 - capacité max de la table)
+      const nbPers = 2 + Math.floor(Math.random() * Math.max(1, (table.nombrePersonnes-1)));
 
-        reservations.push({
-          id: (rid++).toString(),
-          tableId: table.id,
-          date,
-          heure,
-          nombrePersonnes: personnes,
-          nomClient
-        });
-      }
+      // Nom client
+      const nomClient = noms[i % noms.length] + " #" + (i + 1);
+
+      resas.push({
+        id: (1000 + i).toString(),
+        tableId: table.id,
+        date: new Date(d), // Copie pour éviter mutation
+        heure: heureStr,
+        nombrePersonnes: nbPers,
+        nomClient
+      });
     }
-    return reservations;
+    return resas;
   }
 
-  // Données démo enrichies
   const defaultReservations: Reservation[] = [
-    // Les 3 exemples initiaux
-    {
-      id: '1',
-      tableId: '1',
-      date: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 30),
-      heure: '12:30',
-      nombrePersonnes: 4,
-      nomClient: 'M. Dupond'
-    },
-    {
-      id: '2',
-      tableId: '3',
-      date: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 20, 0),
-      heure: '20:00',
-      nombrePersonnes: 7,
-      nomClient: 'Patrick'
-    },
-    {
-      id: '3',
-      tableId: '2',
-      date: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 19, 15),
-      heure: '19:15',
-      nombrePersonnes: 4,
-    },
-    // + enrichissement : entre 1 et 5 résas par mois sur 4 mois (mois courant +3)
-    ...generateSampleReservations(today, 3, 1, 5, tableData)
+    ...generateRandomReservations(
+      defaultTables,
+      100,
+      new Date(2024, 0, 1), // 01/01/2024
+      new Date(2025, 5, 15) // 15/06/2025 (mois=5=Juin)
+    )
   ];
 
   const [tables, setTables] = useState<Table[]>(defaultTables);

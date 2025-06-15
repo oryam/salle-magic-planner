@@ -10,6 +10,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import SimplePagination from "@/components/SimplePagination";
 
 // --- Helpers CSV ---
 function formatDateFr(date: Date | string | null | undefined) {
@@ -186,6 +187,26 @@ const ImportExport = () => {
     }
   };
 
+  // PAGINATION états
+  const [sallePage, setSallePage] = React.useState(1);
+  const [sallePerPage, setSallePerPage] = React.useState(10);
+
+  const [tablePage, setTablePage] = React.useState(1);
+  const [tablePerPage, setTablePerPage] = React.useState(10);
+
+  const [resaPage, setResaPage] = React.useState(1);
+  const [resaPerPage, setResaPerPage] = React.useState(10);
+
+  // Découpage paginé
+  const sallesDisplayed = salles.slice((sallePage - 1) * sallePerPage, sallePage * sallePerPage);
+  React.useEffect(() => { setSallePage(1); }, [sallePerPage, salles.length]);
+
+  const tablesDisplayed = tables.slice((tablePage - 1) * tablePerPage, tablePage * tablePerPage);
+  React.useEffect(() => { setTablePage(1); }, [tablePerPage, tables.length]);
+
+  const reservationsDisplayed = reservations.slice((resaPage - 1) * resaPerPage, resaPage * resaPerPage);
+  React.useEffect(() => { setResaPage(1); }, [resaPerPage, reservations.length]);
+
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-8">
       <h1 className="text-2xl font-bold mb-4">Import / Export (format CSV)</h1>
@@ -322,7 +343,7 @@ const ImportExport = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {salles.map((salle) => (
+                {sallesDisplayed.map((salle) => (
                   <TableRow key={salle.id}>
                     {SallesColumns.map((col) => (
                       <TableCell key={col}>
@@ -331,7 +352,7 @@ const ImportExport = () => {
                     ))}
                   </TableRow>
                 ))}
-                {salles.length === 0 && (
+                {sallesDisplayed.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={SallesColumns.length} className="text-center text-muted-foreground">
                       Aucune salle
@@ -340,6 +361,13 @@ const ImportExport = () => {
                 )}
               </TableBody>
             </Table>
+            <SimplePagination
+              currentPage={sallePage}
+              totalPages={Math.max(1, Math.ceil(salles.length / sallePerPage))}
+              perPage={sallePerPage}
+              setPage={setSallePage}
+              setPerPage={setSallePerPage}
+            />
           </div>
         </Card>
         {/* Tableau Tables */}
@@ -355,7 +383,7 @@ const ImportExport = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tables.map((table) => {
+                {tablesDisplayed.map((table) => {
                   const t = tableToRow(table);
                   return (
                     <TableRow key={table.id}>
@@ -367,7 +395,7 @@ const ImportExport = () => {
                     </TableRow>
                   );
                 })}
-                {tables.length === 0 && (
+                {tablesDisplayed.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={TablesColumns.length} className="text-center text-muted-foreground">
                       Aucune table
@@ -376,6 +404,13 @@ const ImportExport = () => {
                 )}
               </TableBody>
             </Table>
+            <SimplePagination
+              currentPage={tablePage}
+              totalPages={Math.max(1, Math.ceil(tables.length / tablePerPage))}
+              perPage={tablePerPage}
+              setPage={setTablePage}
+              setPerPage={setTablePerPage}
+            />
           </div>
         </Card>
         {/* Tableau Réservations */}
@@ -391,7 +426,7 @@ const ImportExport = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {reservations.map((r) => (
+                {reservationsDisplayed.map((r) => (
                   <TableRow key={r.id}>
                     {ReservationsColumns.map((col) => (
                       <TableCell key={col}>
@@ -402,7 +437,7 @@ const ImportExport = () => {
                     ))}
                   </TableRow>
                 ))}
-                {reservations.length === 0 && (
+                {reservationsDisplayed.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={ReservationsColumns.length} className="text-center text-muted-foreground">
                       Aucune réservation
@@ -411,6 +446,13 @@ const ImportExport = () => {
                 )}
               </TableBody>
             </Table>
+            <SimplePagination
+              currentPage={resaPage}
+              totalPages={Math.max(1, Math.ceil(reservations.length / resaPerPage))}
+              perPage={resaPerPage}
+              setPage={setResaPage}
+              setPerPage={setResaPerPage}
+            />
           </div>
         </Card>
       </div>
