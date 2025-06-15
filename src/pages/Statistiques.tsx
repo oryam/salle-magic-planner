@@ -566,6 +566,7 @@ const Statistiques = () => {
           <ReservationTable 
             reservations={filteredReservations} 
             tables={tables}
+            salles={salles}
           />
         </CardContent>
       </Card>

@@ -3,29 +3,29 @@ import React, { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { Reservation, Table as TableType } from "@/types/restaurant";
+import { Reservation, Table as TableType, Salle } from "@/types/restaurant";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import SimplePagination from "@/components/SimplePagination";
 
-type SortField = 'table' | 'date' | 'client';
+type SortField = 'salle' | 'table' | 'date' | 'client';
 type SortDirection = 'asc' | 'desc';
 
 type Props = {
   reservations: Reservation[];
   tables: TableType[];
+  salles: Salle[];
 };
 
-const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
+const ReservationTable: React.FC<Props> = ({ reservations, tables, salles }) => {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(5);
 
-  // Créer un map pour récupérer rapidement les informations des tables
-  const tableMap = useMemo(() => {
-    return new Map(tables.map(table => [table.id, table]));
-  }, [tables]);
+  // Map pour récupérer rapidement les infos des tables et des salles
+  const tableMap = useMemo(() => new Map(tables.map(table => [table.id, table])), [tables]);
+  const salleMap = useMemo(() => new Map(salles.map(salle => [salle.id, salle])), [salles]);
 
   // Fonction de tri
   const sortedReservations = useMemo(() => {
@@ -33,13 +33,22 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
       let compareValue = 0;
 
       switch (sortField) {
-        case 'table':
+        case 'salle': {
+          const tableA = tableMap.get(a.tableId);
+          const tableB = tableMap.get(b.tableId);
+          const salleA = tableA ? salleMap.get(tableA.salleId)?.nom || "" : "";
+          const salleB = tableB ? salleMap.get(tableB.salleId)?.nom || "" : "";
+          compareValue = salleA.localeCompare(salleB);
+          break;
+        }
+        case 'table': {
           const tableA = tableMap.get(a.tableId);
           const tableB = tableMap.get(b.tableId);
           const numeroA = tableA?.numero || 0;
           const numeroB = tableB?.numero || 0;
           compareValue = numeroA - numeroB;
           break;
+        }
         case 'date':
           compareValue = a.date.getTime() - b.date.getTime();
           break;
@@ -52,7 +61,7 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
 
       return sortDirection === 'asc' ? compareValue : -compareValue;
     });
-  }, [reservations, sortField, sortDirection, tableMap]);
+  }, [reservations, sortField, sortDirection, tableMap, salleMap]);
 
   // Pagination
   const totalPages = perPage === -1 ? 1 : Math.ceil(sortedReservations.length / perPage);
@@ -69,12 +78,12 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
       setSortField(field);
       setSortDirection('asc');
     }
-    setCurrentPage(1); // Reset to first page when sorting
+    setCurrentPage(1);
   };
 
   const handlePerPageChange = (newPerPage: number) => {
     setPerPage(newPerPage);
-    setCurrentPage(1); // Reset to first page when changing per page
+    setCurrentPage(1);
   };
 
   const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => {
@@ -109,6 +118,9 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
           <TableHeader>
             <TableRow>
               <TableHead>
+                <SortButton field="salle">Salle</SortButton>
+              </TableHead>
+              <TableHead>
                 <SortButton field="table">Table</SortButton>
               </TableHead>
               <TableHead>
@@ -124,15 +136,17 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
           <TableBody>
             {paginatedReservations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Aucune réservation trouvée pour cette période
                 </TableCell>
               </TableRow>
             ) : (
               paginatedReservations.map((reservation) => {
                 const table = tableMap.get(reservation.tableId);
+                const salle = table ? salleMap.get(table.salleId) : undefined;
                 return (
                   <TableRow key={reservation.id}>
+                    <TableCell>{salle ? salle.nom : "N/A"}</TableCell>
                     <TableCell className="font-medium">
                       Table {table?.numero || 'N/A'}
                     </TableCell>
@@ -169,3 +183,4 @@ const ReservationTable: React.FC<Props> = ({ reservations, tables }) => {
 };
 
 export default ReservationTable;
+
