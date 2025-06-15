@@ -508,7 +508,7 @@ const Statistiques = () => {
           {/* Responsive scroll horizontal sur mobile si overflow */}
           <div className="w-full overflow-x-auto">
             <div className="min-w-[350px]">
-              <StatisticsChart data={chartData} />
+              <StatisticsChart data={chartData} period={period} />
             </div>
           </div>
         </CardContent>
@@ -524,7 +524,7 @@ const Statistiques = () => {
         <CardContent className="p-0 sm:p-6">
           <div className="w-full overflow-x-auto">
             <div className="min-w-[350px]">
-              <ReservationLineChart data={chartData} />
+              <ReservationLineChart data={chartData} period={period} />
             </div>
           </div>
         </CardContent>

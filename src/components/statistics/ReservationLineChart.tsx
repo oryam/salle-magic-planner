@@ -17,7 +17,20 @@ type StatChartDatum = {
   personnes: number;
 };
 
-const formatTick = (date: Date) => {
+type ReservationLineChartProps = {
+  data: StatChartDatum[];
+  period?: string;
+};
+
+const formatMonthTickFR = (date: Date) =>
+  date instanceof Date
+    ? date.toLocaleDateString("fr-FR", { month: "short" })
+    : String(date);
+
+const formatTick = (date: Date, period?: string) => {
+  if (period === "annee" || period === "12mois") {
+    return formatMonthTickFR(date);
+  }
   return date instanceof Date
     ? date.toLocaleDateString("fr-FR", { month: "short", day: "numeric" })
     : String(date);
@@ -25,15 +38,14 @@ const formatTick = (date: Date) => {
 
 const ReservationLineChart = ({
   data,
-}: {
-  data: StatChartDatum[];
-}) => (
+  period,
+}: ReservationLineChartProps) => (
   <ResponsiveContainer width="100%" height={260}>
     <LineChart data={data}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis
         dataKey="date"
-        tickFormatter={formatTick}
+        tickFormatter={(date) => formatTick(date, period)}
         minTickGap={10}
         tick={{ fontSize: 12, fill: "#64748b" }}
       />
@@ -44,7 +56,9 @@ const ReservationLineChart = ({
       <Tooltip
         labelFormatter={val =>
           val instanceof Date
-            ? val.toLocaleDateString("fr-FR")
+            ? (period === "annee" || period === "12mois"
+                ? val.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+                : val.toLocaleDateString("fr-FR"))
             : String(val)
         }
         formatter={(value: any, name: string) =>

@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   ResponsiveContainer,
@@ -18,7 +19,23 @@ type StatChartDatum = {
   personnes: number;
 };
 
-const formatTick = (date: Date) => {
+// Nouvelle prop period pour savoir quel format appliquer
+type StatisticsChartProps = {
+  data: StatChartDatum[];
+  period?: string;
+};
+
+const formatMonthTickFR = (date: Date) =>
+  date instanceof Date
+    ? date.toLocaleDateString("fr-FR", { month: "short" })
+    : String(date);
+
+const formatTick = (date: Date, period?: string) => {
+  // Année ou 12 derniers mois : afficher seulement le nom du mois (abrégé)
+  if (period === "annee" || period === "12mois") {
+    return formatMonthTickFR(date);
+  }
+  // Sinon : format d'origine (avec le jour)
   return date instanceof Date
     ? date.toLocaleDateString("fr-FR", { month: "short", day: "numeric" })
     : String(date);
@@ -26,15 +43,14 @@ const formatTick = (date: Date) => {
 
 const StatisticsChart = ({
   data,
-}: {
-  data: StatChartDatum[];
-}) => (
+  period,
+}: StatisticsChartProps) => (
   <ResponsiveContainer width="100%" height={260}>
     <BarChart data={data}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis
         dataKey="date"
-        tickFormatter={formatTick}
+        tickFormatter={(date) => formatTick(date, period)}
         minTickGap={10}
         tick={{ fontSize: 12, fill: "#64748b" }}
       />
@@ -45,7 +61,9 @@ const StatisticsChart = ({
       <Tooltip
         labelFormatter={val =>
           val instanceof Date
-            ? val.toLocaleDateString("fr-FR")
+            ? (period === "annee" || period === "12mois"
+                ? val.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+                : val.toLocaleDateString("fr-FR"))
             : String(val)
         }
         formatter={(value: any, name: string) =>
