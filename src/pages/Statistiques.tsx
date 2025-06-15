@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import ReservationLineChart from "@/components/statistics/ReservationLineChart";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import ReservationHeatmap from "@/components/statistics/ReservationHeatmap";
 
 const TIME_FILTERS = [
   { key: "all", label: "Toutes" },
@@ -199,7 +200,57 @@ const Statistiques = () => {
       : times.includes(key) ? times.filter(t => t !== key) : [...times.filter(t => t !== "all"), key]
   );
 
-  // Sélecteur de période et d’intervalle
+  // --- GENERATION DES DONNÉES POUR LA HEATMAP ---
+  const slots = React.useMemo(() => {
+    // Génère les tranches horaires 00:00 à 23:30 par 30 min (["00:00", "00:30", ...])
+    const res: string[] = [];
+    for (let h = 0; h < 24; h++) {
+      res.push(`${h.toString().padStart(2, "0")}:00`);
+      res.push(`${h.toString().padStart(2, "0")}:30`);
+    }
+    return res;
+  }, []);
+
+  const daysList = React.useMemo(() => {
+    // Liste des jours à afficher = jours du graphique (période sélectionnée)
+    const result: string[] = [];
+    let cursor = new Date(startDate);
+    while (cursor <= endDate) {
+      result.push(format(cursor, "yyyy-MM-dd"));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return result;
+  }, [startDate, endDate]);
+
+  const heatmapData = React.useMemo(() => {
+    // Map: { [day + '|' + slot]: count }
+    const countMap: { [key: string]: number } = {};
+    filteredReservations.forEach(res => {
+      const day = format(res.date, "yyyy-MM-dd");
+      let [h, m] = res.heure ? res.heure.split(":").map(Number) : [0, 0];
+
+      // arrondi à la 1/2h la plus proche vers le bas
+      const minuteRounded = m < 30 ? "00" : "30";
+      const slot = `${h.toString().padStart(2, "0")}:${minuteRounded}`;
+
+      const key = `${day}|${slot}`;
+      countMap[key] = (countMap[key] ?? 0) + 1;
+    });
+
+    // Construction du tableau d'objets
+    const arr: { slot: string; date: string; count: number }[] = [];
+    for (const day of daysList) {
+      for (const slot of slots) {
+        arr.push({
+          slot,
+          date: day,
+          count: countMap[`${day}|${slot}`] ?? 0,
+        });
+      }
+    }
+    return arr;
+  }, [filteredReservations, daysList, slots]);
+
   return (
     <div className="container max-w-6xl mx-auto py-6">
       <h2 className="font-bold text-2xl mb-2">Statistiques des réservations</h2>
@@ -370,6 +421,18 @@ const Statistiques = () => {
         </CardHeader>
         <CardContent>
           <StatisticsChart data={chartData} />
+        </CardContent>
+      </Card>
+
+      {/* HEATMAP RÉPARTITION PAR CRÉNEAUX */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Heatmap des réservations par créneau de 30 min
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ReservationHeatmap data={heatmapData} slots={slots} days={daysList} />
         </CardContent>
       </Card>
     </div>
