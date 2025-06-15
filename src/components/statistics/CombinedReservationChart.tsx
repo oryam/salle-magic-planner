@@ -52,8 +52,17 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           tick={{ fontSize: 12, fill: "#64748b" }}
         />
         <YAxis
+          yAxisId="left"
           allowDecimals={false}
           tick={{ fontSize: 12, fill: "#64748b" }}
+          label={{ value: "Réservations", angle: -90, position: "insideLeft", offset: -5 }}
+        />
+        <YAxis
+          yAxisId="right"
+          orientation="right"
+          allowDecimals={false}
+          tick={{ fontSize: 12, fill: "#64748b" }}
+          label={{ value: "Personnes", angle: 90, position: "insideRight", offset: 10 }}
         />
         <Tooltip
           labelFormatter={val =>
@@ -78,6 +87,7 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           name="Personnes"
           barSize={14}
           radius={[2, 2, 0, 0]}
+          yAxisId="right"
         />
         <Line
           type="monotone"
@@ -88,6 +98,7 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           name="Réservations"
           connectNulls={false}
           isAnimationActive={false}
+          yAxisId="left"
         />
       </ComposedChart>
     </ResponsiveContainer>
