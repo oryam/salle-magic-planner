@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,7 +23,24 @@ const queryClient = new QueryClient();
 const LOCALSTORAGE_KEY = "hideStartupGuide";
 
 const App = () => {
-  // On utilise un composant wrapper ici pour accéder à useIsMobile
+  // Contrôle de l’affichage du guide de démarrage
+  const [showGuide, setShowGuide] = useState(false);
+
+  useEffect(() => {
+    const hideGuide = localStorage.getItem(LOCALSTORAGE_KEY);
+    setShowGuide(hideGuide !== "1");
+  }, []);
+
+  // Ouverture manuelle du guide depuis la barre de navigation
+  const handleOpenGuide = useCallback(() => {
+    setShowGuide(true);
+  }, []);
+
+  const handleCloseGuide = useCallback(() => {
+    setShowGuide(false);
+  }, []);
+
+  // Wrapper pour utiliser le hook useIsMobile()
   function MainWrapper() {
     const isMobile = useIsMobile();
 
@@ -33,7 +50,7 @@ const App = () => {
           <AppSidebar />
           <SidebarInset>
             {/* Affiche uniquement Navigation sur mobile */}
-            {isMobile && <Navigation />}
+            {isMobile && <Navigation onShowHelp={handleOpenGuide} />}
             <Routes>
               <Route path="/" element={<Configuration />} />
               <Route path="/salle" element={<Salle />} />
@@ -48,18 +65,6 @@ const App = () => {
     );
   }
 
-  // Nouveau : contrôle de l’affichage du guide de démarrage
-  const [showGuide, setShowGuide] = useState(false);
-
-  useEffect(() => {
-    const hideGuide = localStorage.getItem(LOCALSTORAGE_KEY);
-    setShowGuide(hideGuide !== "1");
-  }, []);
-
-  const handleCloseGuide = () => {
-    setShowGuide(false);
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -68,6 +73,8 @@ const App = () => {
         <RestaurantProvider>
           <BrowserRouter>
             <StartupGuide open={showGuide} onClose={handleCloseGuide} />
+            {/* Passe la prop onShowHelp à Navigation pour desktop */}
+            <Navigation onShowHelp={handleOpenGuide} />
             <MainWrapper />
           </BrowserRouter>
         </RestaurantProvider>
@@ -77,3 +84,4 @@ const App = () => {
 };
 
 export default App;
+
