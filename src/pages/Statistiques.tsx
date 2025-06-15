@@ -54,7 +54,7 @@ const Statistiques = () => {
   // États de filtre
   const [period, setPeriod] = useState<PeriodType>("mois");
   const [date, setDate] = useState<Date>(new Date());
-  const [customRange, setCustomRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null });
+  const [customRange, setCustomRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: Date | null });
   const [selectedSalleIds, setSelectedSalleIds] = useState<string[]>([]);
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(["all"]);
@@ -322,6 +322,9 @@ const Statistiques = () => {
     }
   }, [filteredReservations, daysList, slots, period]);
 
+  const totalReservations = filteredReservations.length;
+  const totalPersonnes = filteredReservations.reduce((sum, r) => sum + r.nombrePersonnes, 0);
+
   return (
     <div className="px-2 sm:px-5 max-w-full w-full">
       {/* HEADER */}
@@ -329,135 +332,6 @@ const Statistiques = () => {
         <h1 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-0 whitespace-nowrap">
           Statistiques
         </h1>
-        <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full sm:w-auto">Filtrer</Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 max-w-xs sm:max-w-sm">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Période</h4>
-                <div className="flex flex-wrap gap-2">
-                  {PERIODS.map(p => (
-                    <Button
-                      key={p.key}
-                      variant={period === p.key ? "default" : "outline"}
-                      onClick={() => setPeriod(p.key as PeriodType)}
-                    >
-                      {p.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {period === "custom" && (
-                <div className="border rounded-md p-2">
-                  <h4 className="text-sm font-medium">Choisir une date de début et de fin</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Début</p>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-[150px] justify-start text-left font-normal",
-                              !customRange.start && "text-muted-foreground"
-                            )}
-                          >
-                            {customRange.start ? format(customRange.start, "dd/MM/yyyy") : (
-                              <span>Choisir une date</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={customRange.start}
-                            onSelect={(date) => setCustomRange({ ...customRange, start: date })}
-                            disabled={false}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Fin</p>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-[150px] justify-start text-left font-normal",
-                              !customRange.end && "text-muted-foreground"
-                            )}
-                          >
-                            {customRange.end ? format(customRange.end, "dd/MM/yyyy") : (
-                              <span>Choisir une date</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={customRange.end}
-                            onSelect={(date) => setCustomRange({ ...customRange, end: date })}
-                            disabled={false}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <Button variant="link" onClick={() => setAdvancedFiltersVisible(!advancedFiltersVisible)}>
-                {advancedFiltersVisible ? "Masquer" : "Afficher"} les filtres avancés
-              </Button>
-
-              {advancedFiltersVisible && (
-                <div className="space-y-2">
-                  <div>
-                    <h4 className="text-sm font-medium">Salles</h4>
-                    <div className="flex flex-col gap-1">
-                      {salleOptions.map(s => (
-                        <label key={s.value} className="flex items-center space-x-2">
-                          <Checkbox checked={selectedSalleIds.includes(s.value)} onCheckedChange={() => handleSalleSelect(s.value)} />
-                          <span>{s.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium">Tables</h4>
-                    <div className="flex flex-col gap-1">
-                      {tableOptions.map(t => (
-                        <label key={t.value} className="flex items-center space-x-2">
-                          <Checkbox checked={selectedTableIds.includes(t.value)} onCheckedChange={() => handleTableSelect(t.value)} />
-                          <span>{t.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium">Horaires</h4>
-                    <div className="flex flex-col gap-1">
-                      {TIME_FILTERS.map(t => (
-                        <label key={t.key} className="flex items-center space-x-2">
-                          <Checkbox checked={selectedTimes.includes(t.key)} onCheckedChange={() => handleTimeSelect(t.key)} />
-                          <span>{t.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
       </div>
 
       {/* BARRE DE FILTRES */}
