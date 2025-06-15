@@ -127,7 +127,7 @@ const StatisticsFilters: React.FC<Props> = ({
             {salleOptions.map(opt => (
               <label key={opt.value} className="flex items-center gap-1">
                 <Checkbox checked={selectedSalleIds.includes(opt.value)}
-                  onCheckedChange={() => handleSalleSelect(opt.value)}
+                  onCheckedChange={(_checked) => handleSalleSelect(opt.value)}
                   id={`salle-${opt.value}`} />
                 <span>{opt.label}</span>
               </label>
@@ -141,7 +141,7 @@ const StatisticsFilters: React.FC<Props> = ({
             {tableOptions.map(opt => (
               <label key={opt.value} className="flex items-center gap-1">
                 <Checkbox checked={selectedTableIds.includes(opt.value)}
-                  onCheckedChange={() => handleTableSelect(opt.value)}
+                  onCheckedChange={(_checked) => handleTableSelect(opt.value)}
                   id={`table-${opt.value}`}/>
                 <span>{opt.label}</span>
               </label>
@@ -155,7 +155,7 @@ const StatisticsFilters: React.FC<Props> = ({
             {TIME_FILTERS.map(opt => (
               <label key={opt.key} className="flex items-center gap-1">
                 <Checkbox checked={selectedTimes.includes(opt.key)}
-                  onCheckedChange={() => handleTimeSelect(opt.key)}
+                  onCheckedChange={(_checked) => handleTimeSelect(opt.key)}
                   id={`time-${opt.key}`}/>
                 <span>{opt.label}</span>
               </label>
@@ -168,3 +168,4 @@ const StatisticsFilters: React.FC<Props> = ({
 );
 
 export default StatisticsFilters;
+
