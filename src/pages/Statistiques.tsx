@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import ReservationLineChart from "@/components/statistics/ReservationLineChart";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ReservationHeatmap from "@/components/statistics/ReservationHeatmap";
+import ReservationTable from "@/components/statistics/ReservationTable";
 
 const TIME_FILTERS = [
   { key: "all", label: "Toutes" },
@@ -530,8 +531,8 @@ const Statistiques = () => {
         </CardContent>
       </Card>
 
-      {/* HEATMAP RÉPARTITION PAR CRÉNEAUX */}
-      <Card>
+      {/* HEATMAP RÉPARTITION PAR CRÉNEAUX */}
+      <Card className="mb-5">
         <CardHeader>
           <CardTitle className="text-base sm:text-lg">
             Heatmap des réservations par créneau (matin/midi/soir)
@@ -546,6 +547,21 @@ const Statistiques = () => {
               isMonthlyView={period === "annee" || period === "12mois"}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* TABLEAU DES RESERVATIONS */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base sm:text-lg">
+            Détail des réservations
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-6">
+          <ReservationTable 
+            reservations={filteredReservations} 
+            tables={tables}
+          />
         </CardContent>
       </Card>
     </div>
