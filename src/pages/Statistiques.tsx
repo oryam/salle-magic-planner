@@ -60,8 +60,11 @@ const Statistiques = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [advancedFiltersVisible, setAdvancedFiltersVisible] = useState(false);
 
-  // Nouvel état pour la sélection de salle principale
+  // Nouvel état pour la sélection de salle principale (barre du haut)
   const [selectedSalleId, setSelectedSalleId] = useState<string>(ALL_SALLES_VALUE);
+
+  // Nouvel état pour le filtre sur le nom du client
+  const [clientNameFilter, setClientNameFilter] = useState<string>("");
 
   // --- GESTION NAVIGATION PERIODIQUE ---
   const handleNavigate = (direction: "prev" | "next") => {
@@ -138,20 +141,34 @@ const Statistiques = () => {
     endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23,59,59,999);
   }
 
-  // Filtrage des réservations
+  // Synchroniser la sélection de salle principale avec la liste de salle avancée (filtres avancés)
+  React.useEffect(() => {
+    if (selectedSalleId === ALL_SALLES_VALUE) {
+      setSelectedSalleIds([]);
+    } else if (selectedSalleIds.length !== 1 || selectedSalleIds[0] !== selectedSalleId) {
+      setSelectedSalleIds([selectedSalleId]);
+    }
+  }, [selectedSalleId]);
+
+  // --- Filtrage des réservations ---
   const filteredReservations = useMemo(() => {
     return reservations.filter(res => {
-      const isInDate =
-        res.date >= startDate && res.date <= endDate;
+      // Filtre période/dates (inchangé)
+      const isInDate = res.date >= startDate && res.date <= endDate;
+      // Filtre salle (logique harmonisée : soit ALL, soit la salle sélectionnée dans filtre principal OU en filtre avancé)
       const salleValid =
         selectedSalleIds.length === 0 || tables.find(t => t.id === res.tableId && selectedSalleIds.includes(t.salleId));
       const tableValid =
         selectedTableIds.length === 0 || selectedTableIds.includes(res.tableId);
       const timeValid = filterByTimeSlot(res.heure, selectedTimes);
+      // Nouveau filtre : nom du client
+      const clientValid =
+        !clientNameFilter ||
+        (res.nomClient && res.nomClient.toLowerCase().includes(clientNameFilter.trim().toLowerCase()));
 
-      return isInDate && salleValid && tableValid && timeValid;
+      return isInDate && salleValid && tableValid && timeValid && clientValid;
     });
-  }, [reservations, startDate, endDate, selectedSalleIds, selectedTableIds, tables, selectedTimes]);
+  }, [reservations, startDate, endDate, selectedSalleIds, selectedTableIds, tables, selectedTimes, clientNameFilter]);
   
   const distinctDaysWithReservation = useMemo(() => {
     const daysSet = new Set<string>();
@@ -167,6 +184,7 @@ const Statistiques = () => {
     .map(t => ({ value: t.id, label: `Table ${t.numero}` }));
 
   const chartData = useMemo(() => {
+    let resultArr = [];
     if (period === "annee" || period === "12mois") {
       const months = [];
       let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1, 0, 0, 0, 0);
@@ -189,26 +207,53 @@ const Statistiques = () => {
           monthMap.get(key)!.personnes += res.nombrePersonnes;
         }
       });
-      return months;
-    }
-
-    const days: {
-      [iso: string]: { date: Date; reservations: number; personnes: number }
-    } = {};
-    let cursor = new Date(startDate);
-    while (cursor <= endDate) {
-      const key = format(cursor, "yyyy-MM-dd");
-      days[key] = { date: new Date(cursor), reservations: 0, personnes: 0 };
-      cursor.setDate(cursor.getDate() + 1);
-    }
-    filteredReservations.forEach(res => {
-      const resDayKey = format(res.date, "yyyy-MM-dd");
-      if (days[resDayKey]) {
-        days[resDayKey].reservations += 1;
-        days[resDayKey].personnes += res.nombrePersonnes;
+      // Ajout slots début/fin (points "vides")
+      // Premier et dernier mois ±1
+      if (months.length > 0) {
+        const firstMonth = new Date(months[0].date);
+        firstMonth.setMonth(firstMonth.getMonth() - 1);
+        const lastMonth = new Date(months[months.length - 1].date);
+        lastMonth.setMonth(lastMonth.getMonth() + 1);
+        resultArr = [
+          { date: new Date(firstMonth), reservations: null, personnes: null },
+          ...months,
+          { date: new Date(lastMonth), reservations: null, personnes: null },
+        ];
+      } else {
+        resultArr = months;
       }
-    });
-    return Object.values(days);
+    } else {
+      const days: {
+        [iso: string]: { date: Date; reservations: number; personnes: number }
+      } = {};
+      let cursor = new Date(startDate);
+      while (cursor <= endDate) {
+        const key = format(cursor, "yyyy-MM-dd");
+        days[key] = { date: new Date(cursor), reservations: 0, personnes: 0 };
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      filteredReservations.forEach(res => {
+        const resDayKey = format(res.date, "yyyy-MM-dd");
+        if (days[resDayKey]) {
+          days[resDayKey].reservations += 1;
+          days[resDayKey].personnes += res.nombrePersonnes;
+        }
+      });
+      // Ajout slots début/fin (points "vides")
+      const dayArr = Object.values(days);
+      if (dayArr.length > 0) {
+        const firstDay = new Date(dayArr[0].date); firstDay.setDate(firstDay.getDate() - 1);
+        const lastDay = new Date(dayArr[dayArr.length - 1].date); lastDay.setDate(lastDay.getDate() + 1);
+        resultArr = [
+          { date: new Date(firstDay), reservations: null, personnes: null },
+          ...dayArr,
+          { date: new Date(lastDay), reservations: null, personnes: null },
+        ];
+      } else {
+        resultArr = dayArr;
+      }
+    }
+    return resultArr;
   }, [filteredReservations, startDate, endDate, period]);
 
   const totalReservations = filteredReservations.length;
@@ -438,7 +483,7 @@ const Statistiques = () => {
         </Popover>
       </div>
 
-      {/* NOUVELLE BARRE DE FILTRES MODULAIRE */}
+      {/* BARRE DE FILTRES */}
       <FiltersBar
         salles={salles}
         selectedSalleId={selectedSalleId}
@@ -449,6 +494,9 @@ const Statistiques = () => {
         currentDate={date}
         onNavigate={handleNavigate}
         className="mb-5"
+        searchTerm={clientNameFilter}
+        onSearchChange={setClientNameFilter}
+        searchPlaceholder="Rechercher un client…"
       />
 
       {/* RESUME STATS */}
@@ -459,7 +507,6 @@ const Statistiques = () => {
           jours={distinctDaysWithReservation}
         />
       </div>
-
       {/* CHART */}
       <Card className="mb-5">
         <CardHeader>
@@ -475,8 +522,6 @@ const Statistiques = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* LINE CHART */}
       <Card className="mb-5">
         <CardHeader>
           <CardTitle className="text-base sm:text-lg">
@@ -491,7 +536,6 @@ const Statistiques = () => {
           </div>
         </CardContent>
       </Card>
-
       {/* HEATMAP RÉPARTITION PAR CRÉNEAUX */}
       <Card className="mb-5">
         <CardHeader>

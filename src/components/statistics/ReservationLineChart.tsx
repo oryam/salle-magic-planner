@@ -11,10 +11,11 @@ import {
   Legend
 } from "recharts";
 
+// Adapter pour supporter points vides en début/fin
 type StatChartDatum = {
   date: Date;
-  reservations: number;
-  personnes: number;
+  reservations: number | null;
+  personnes: number | null;
 };
 
 type ReservationLineChartProps = {
@@ -78,7 +79,8 @@ const ReservationLineChart = ({
         strokeWidth={3}
         dot={{ r: 3 }}
         name="Réservations"
-        connectNulls
+        connectNulls={false}
+        isAnimationActive={false}
       />
     </LineChart>
   </ResponsiveContainer>
