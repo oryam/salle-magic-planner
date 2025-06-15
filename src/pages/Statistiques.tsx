@@ -167,9 +167,45 @@ const Statistiques = () => {
     .filter(t => selectedSalleIds.length === 0 || selectedSalleIds.includes(t.salleId))
     .map(t => ({ value: t.id, label: `Table ${t.numero}` }));
 
-  // Données chart : groupées par jour selon la période
+  // Données chart : groupées par jour OU par mois selon la période
   const chartData = useMemo(() => {
-    const days: { [iso: string]: { date: Date; reservations: number; personnes: number } } = {};
+    // Cas regroupement par mois
+    if (period === "annee" || period === "12mois") {
+      // Générer tous les mois du range de dates
+      const months: {
+        [iso: string]: { date: Date; reservations: number; personnes: number }
+      } = {};
+      let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      while (
+        cursor.getFullYear() < endDate.getFullYear() ||
+        (cursor.getFullYear() === endDate.getFullYear() && cursor.getMonth() <= endDate.getMonth())
+      ) {
+        const key = `${cursor.getFullYear()}-${String(
+          cursor.getMonth() + 1
+        ).padStart(2, "0")}`;
+        months[key] = { date: new Date(cursor), reservations: 0, personnes: 0 };
+        cursor = new Date(
+          cursor.getFullYear(),
+          cursor.getMonth() + 1,
+          1
+        );
+      }
+      filteredReservations.forEach(res => {
+        const key = `${res.date.getFullYear()}-${String(
+          res.date.getMonth() + 1
+        ).padStart(2, "0")}`;
+        if (months[key]) {
+          months[key].reservations += 1;
+          months[key].personnes += res.nombrePersonnes;
+        }
+      });
+      return Object.values(months);
+    }
+
+    // Sinon, groupement par jour comme avant
+    const days: {
+      [iso: string]: { date: Date; reservations: number; personnes: number }
+    } = {};
     let cursor = new Date(startDate);
     while (cursor <= endDate) {
       const key = format(cursor, "yyyy-MM-dd");
@@ -184,7 +220,7 @@ const Statistiques = () => {
       }
     });
     return Object.values(days);
-  }, [filteredReservations, startDate, endDate]);
+  }, [filteredReservations, startDate, endDate, period]);
 
   // Résumés
   const totalReservations = filteredReservations.length;
