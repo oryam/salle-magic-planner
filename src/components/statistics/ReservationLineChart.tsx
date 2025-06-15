@@ -1,16 +1,15 @@
+
 import React from "react";
 import {
   ResponsiveContainer,
-  BarChart,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
-  Tooltip,
-  Legend,
-  Bar,
   CartesianGrid,
+  Tooltip,
+  Legend
 } from "recharts";
-
-const COLORS = ["#3b82f6"];
 
 type StatChartDatum = {
   date: Date;
@@ -24,13 +23,13 @@ const formatTick = (date: Date) => {
     : String(date);
 };
 
-const StatisticsChart = ({
+const ReservationLineChart = ({
   data,
 }: {
   data: StatChartDatum[];
 }) => (
   <ResponsiveContainer width="100%" height={260}>
-    <BarChart data={data}>
+    <LineChart data={data}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis
         dataKey="date"
@@ -51,22 +50,24 @@ const StatisticsChart = ({
         formatter={(value: any, name: string) =>
           [
             value,
-            name === "personnes"
-              ? "Personnes"
+            name === "reservations"
+              ? "Réservations"
               : name,
           ] as [string, string]
         }
       />
       <Legend />
-      <Bar
-        dataKey="personnes"
-        fill={COLORS[0]}
-        name="Personnes"
-        barSize={18}
-        radius={[2, 2, 0, 0]}
+      <Line
+        type="monotone"
+        dataKey="reservations"
+        stroke="#34d399"
+        strokeWidth={3}
+        dot={{ r: 3 }}
+        name="Réservations"
+        connectNulls
       />
-    </BarChart>
+    </LineChart>
   </ResponsiveContainer>
 );
 
-export default StatisticsChart;
+export default ReservationLineChart;

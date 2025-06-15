@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import ReservationLineChart from "@/components/statistics/ReservationLineChart";
 
 const TIME_FILTERS = [
   { key: "all", label: "Toutes" },
@@ -255,15 +255,27 @@ const Statistiques = () => {
         </div>
       </div>
 
-      {/* Graphique */}
-      <Card className="mb-8">
+      {/* Graphe courbe réservations */}
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle>
-            Historique des réservations
+            Historique du nombre de réservations
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <StatisticsChart data={chartData} showLines={true} />
+          <ReservationLineChart data={chartData} />
+        </CardContent>
+      </Card>
+
+      {/* Graphe barres personnes */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>
+            Historique du nombre de personnes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <StatisticsChart data={chartData} />
         </CardContent>
       </Card>
     </div>
