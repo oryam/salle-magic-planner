@@ -56,7 +56,7 @@ const Statistiques = () => {
   // Filtres d’état
   const [period, setPeriod] = useState<string>("mois");
   const [date, setDate] = useState<Date>(new Date());
-  const [customRange, setCustomRange<{ start: Date | null; end: Date | null }>({ start: null, end: null });
+  const [customRange, setCustomRange] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null });
   const [selectedSalleIds, setSelectedSalleIds] = useState<string[]>([]);
   const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(["all"]);
@@ -199,41 +199,42 @@ const Statistiques = () => {
     <div className="container max-w-6xl mx-auto py-6">
       <h2 className="font-bold text-2xl mb-2">Statistiques des réservations</h2>
 
-    <StatisticsFilters
-      period={period}
-      setPeriod={setPeriod}
-      date={date}
-      setDate={setDate}
-      customRange={customRange}
-      setCustomRange={setCustomRange}
-      salleOptions={salleOptions}
-      selectedSalleIds={selectedSalleIds}
-      handleSalleSelect={handleSalleSelect}
-      tableOptions={tableOptions}
-      selectedTableIds={selectedTableIds}
-      handleTableSelect={handleTableSelect}
-      selectedTimes={selectedTimes}
-      handleTimeSelect={handleTimeSelect}
-      advancedFiltersVisible={advancedFiltersVisible}
-      setAdvancedFiltersVisible={setAdvancedFiltersVisible}
-      onNavigate={handleNavigate}
-    />
+      <StatisticsFilters
+        period={period}
+        setPeriod={setPeriod}
+        date={date}
+        setDate={setDate}
+        customRange={customRange}
+        setCustomRange={setCustomRange}
+        salleOptions={salleOptions}
+        selectedSalleIds={selectedSalleIds}
+        handleSalleSelect={handleSalleSelect}
+        tableOptions={tableOptions}
+        selectedTableIds={selectedTableIds}
+        handleTableSelect={handleTableSelect}
+        selectedTimes={selectedTimes}
+        handleTimeSelect={handleTimeSelect}
+        advancedFiltersVisible={advancedFiltersVisible}
+        setAdvancedFiltersVisible={setAdvancedFiltersVisible}
+        onNavigate={handleNavigate}
+      />
 
-    {/* Libellé période affichée */}
-    {getPeriodLabel() && (
-      <div className="mb-3 text-muted-foreground text-sm font-medium">
-        {getPeriodLabel()}
-      </div>
-    )}
+      {/* Libellé période affichée */}
+      {getPeriodLabel() && (
+        <div className="mb-3 text-muted-foreground text-sm font-medium">
+          {getPeriodLabel()}
+        </div>
+      )}
 
-    <StatisticsIndicators
-      reservations={totalReservations}
-      personnes={totalPersonnes}
-      jours={nbJours}
-    />
+      <StatisticsIndicators
+        reservations={totalReservations}
+        personnes={totalPersonnes}
+        jours={nbJours}
+      />
 
-    <StatisticsCharts data={chartData} />
-  </div>
-);
+      <StatisticsCharts data={chartData} />
+    </div>
+  );
+};
 
 export default Statistiques;
