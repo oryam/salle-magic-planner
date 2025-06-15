@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 const LOCALSTORAGE_KEY = "hideStartupGuide";
 
@@ -94,22 +95,37 @@ export const StartupGuide: React.FC<StartupGuideProps> = ({ open, onClose }) => 
               Ne plus afficher ce guide
             </label>
           </div>
-          <div className="flex justify-between pt-4 gap-2">
+          {/* Ligne de navigation étape précédente/suivante */}
+          <div className="flex items-center justify-center pt-4 gap-0">
             <Button
               variant="secondary"
+              className="rounded-full p-2"
               onClick={handlePrevious}
               disabled={step === 0}
+              aria-label="Étape précédente"
             >
-              Précédent
+              <ArrowLeft className="w-5 h-5" />
             </Button>
+            <span className="inline-block px-4 text-xs text-muted-foreground">
+              Étape {step + 1} / {features.length}
+            </span>
             {step < features.length - 1 ? (
-              <Button onClick={handleNext}>Suivant</Button>
+              <Button
+                className="rounded-full p-2"
+                onClick={handleNext}
+                aria-label="Étape suivante"
+              >
+                <ArrowRight className="w-5 h-5" />
+              </Button>
             ) : (
-              <Button onClick={onClose}>Commencer</Button>
+              <Button
+                className="rounded-full px-4"
+                onClick={onClose}
+                aria-label="Fermer le guide"
+              >
+                <ArrowRight className="w-5 h-5" />
+              </Button>
             )}
-          </div>
-          <div className="text-xs text-muted-foreground mt-2 text-center">
-            Étape {step + 1} / {features.length}
           </div>
         </DialogDescription>
       </DialogContent>
