@@ -13,22 +13,6 @@ import { cn } from "@/lib/utils";
 import ReservationLineChart from "@/components/statistics/ReservationLineChart";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const TIME_FILTERS = [
-  { key: "all", label: "Toutes" },
-  { key: "morning", label: "Matin (6h-11h)" },
-  { key: "midday", label: "Midi (11h01-15h)" },
-  { key: "evening", label: "Soir (18h-23h30)" },
-];
-
-const PERIODS = [
-  { key: "jour", label: "Jour" },
-  { key: "semaine", label: "Semaine" },
-  { key: "mois", label: "Mois" },
-  { key: "annee", label: "Année" },
-  { key: "12mois", label: "12 derniers mois" },
-  { key: "custom", label: "Intervalle personnalisé" },
-];
-
 function filterByTimeSlot(hourStr?: string, selTimes?: string[]) {
   // Retourne true si la case horaire correspond à une case sélectionnée
   if (!selTimes || selTimes.length === 0 || selTimes.includes("all")) return true;
