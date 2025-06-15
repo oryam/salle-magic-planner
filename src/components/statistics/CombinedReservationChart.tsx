@@ -41,6 +41,13 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
   // Ignore slots vides
   const filteredData = data.filter(d => d.reservations !== null && d.personnes !== null);
 
+  // Trouver min et max globaux pour reservations/personnes
+  const allValues = filteredData.flatMap(d => 
+    [d.reservations ?? 0, d.personnes ?? 0]
+  );
+  const minValue = Math.min(...allValues, 0); // Commencer à 0 au moins
+  const maxValue = Math.max(...allValues, 5); // Si tout est à 0, avoir au moins 5
+
   return (
     <ResponsiveContainer width="100%" height={260}>
       <ComposedChart data={filteredData}>
@@ -54,6 +61,7 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
         <YAxis
           yAxisId="left"
           allowDecimals={false}
+          domain={[minValue, maxValue]}
           tick={{ fontSize: 12, fill: "#64748b" }}
           label={{ value: "Réservations", angle: -90, position: "insideLeft", offset: -5 }}
         />
@@ -61,6 +69,7 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           yAxisId="right"
           orientation="right"
           allowDecimals={false}
+          domain={[minValue, maxValue]}
           tick={{ fontSize: 12, fill: "#64748b" }}
           label={{ value: "Personnes", angle: 90, position: "insideRight", offset: 10 }}
         />
@@ -81,14 +90,7 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           }
         />
         <Legend />
-        <Bar
-          dataKey="personnes"
-          fill="#60a5fa"
-          name="Personnes"
-          barSize={14}
-          radius={[2, 2, 0, 0]}
-          yAxisId="right"
-        />
+        {/* L'ordre définit celui de la légende */}
         <Line
           type="monotone"
           dataKey="reservations"
@@ -99,6 +101,14 @@ const CombinedReservationChart = ({ data, period }: CombinedReservationChartProp
           connectNulls={false}
           isAnimationActive={false}
           yAxisId="left"
+        />
+        <Bar
+          dataKey="personnes"
+          fill="#60a5fa"
+          name="Personnes"
+          barSize={14}
+          radius={[2, 2, 0, 0]}
+          yAxisId="right"
         />
       </ComposedChart>
     </ResponsiveContainer>

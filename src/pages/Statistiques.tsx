@@ -4,13 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, addDays, addWeeks, addMonths, addYears, subDays, subWeeks, subMonths, subYears } from "date-fns";
 import { fr } from "date-fns/locale";
 import StatisticSummary from "@/components/statistics/StatisticSummary";
-import StatisticsChart from "@/components/statistics/StatisticsChart";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import ReservationLineChart from "@/components/statistics/ReservationLineChart";
 import ReservationHeatmap from "@/components/statistics/ReservationHeatmap";
 import ReservationTable from "@/components/statistics/ReservationTable";
 import FiltersBar from "@/components/FiltersBar";
@@ -360,40 +358,12 @@ const Statistiques = () => {
           jours={distinctDaysWithReservation}
         />
       </div>
-      {/* CHART */}
+      
+      {/* GRAPHIQUE GLOBAL (Barres/ligne) */}
       <Card className="mb-5">
         <CardHeader>
           <CardTitle className="text-base sm:text-lg">
-            Nombre de réservations et de personnes par jour
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-6">
-          <div className="w-full overflow-x-auto">
-            <div className="min-w-[350px]">
-              <StatisticsChart data={chartData} period={period} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="mb-5">
-        <CardHeader>
-          <CardTitle className="text-base sm:text-lg">
-            Évolution des réservations
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-6">
-          <div className="w-full overflow-x-auto">
-            <div className="min-w-[350px]">
-              <ReservationLineChart data={chartData} period={period} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      {/* NOUVEAU GRAPHIQUE MIXTE BARRES + COURBE */}
-      <Card className="mb-5">
-        <CardHeader>
-          <CardTitle className="text-base sm:text-lg">
-            Nb de personnes (barres) & Nb de réservations (ligne)
+            Nb de réservations (ligne) & Nb de personnes (barres)
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
@@ -404,6 +374,7 @@ const Statistiques = () => {
           </div>
         </CardContent>
       </Card>
+
       {/* HEATMAP RÉPARTITION PAR CRÉNEAUX */}
       <Card className="mb-5">
         <CardHeader>
