@@ -200,19 +200,22 @@ const Statistiques = () => {
       : times.includes(key) ? times.filter(t => t !== key) : [...times.filter(t => t !== "all"), key]
   );
 
-  // --- GENERATION DES DONNÉES POUR LA HEATMAP ---
+  // --- GENERATION DES DONNÉES POUR LA HEATMAP GROUPEE  ---
   const slots = React.useMemo(() => {
-    // Génère les tranches horaires 00:00 à 23:30 par 30 min (["00:00", "00:30", ...])
-    const res: string[] = [];
-    for (let h = 0; h < 24; h++) {
-      res.push(`${h.toString().padStart(2, "0")}:00`);
-      res.push(`${h.toString().padStart(2, "0")}:30`);
-    }
-    return res;
+    return ["Matin", "Midi", "Soir"];
   }, []);
 
+  // Helper pour déterminer le créneau en texte à partir d'un horaire
+  function slotForHour(hourStr?: string): string {
+    if (!hourStr) return "";
+    const [h, m] = hourStr.split(":").map(Number);
+    if (h >= 6 && (h < 11 || (h === 11 && m === 0))) return "Matin";
+    if ((h > 11 || (h === 11 && m > 0)) && h < 15) return "Midi";
+    if ((h === 18 && m >= 0) || (h > 18 && (h < 23 || (h === 23 && m <= 30)))) return "Soir";
+    return "";
+  }
+
   const daysList = React.useMemo(() => {
-    // Liste des jours à afficher = jours du graphique (période sélectionnée)
     const result: string[] = [];
     let cursor = new Date(startDate);
     while (cursor <= endDate) {
@@ -227,12 +230,8 @@ const Statistiques = () => {
     const countMap: { [key: string]: number } = {};
     filteredReservations.forEach(res => {
       const day = format(res.date, "yyyy-MM-dd");
-      let [h, m] = res.heure ? res.heure.split(":").map(Number) : [0, 0];
-
-      // arrondi à la 1/2h la plus proche vers le bas
-      const minuteRounded = m < 30 ? "00" : "30";
-      const slot = `${h.toString().padStart(2, "0")}:${minuteRounded}`;
-
+      const slot = slotForHour(res.heure);
+      if (!slot) return; // ignore reservations en dehors des créneaux
       const key = `${day}|${slot}`;
       countMap[key] = (countMap[key] ?? 0) + 1;
     });
@@ -251,184 +250,11 @@ const Statistiques = () => {
     return arr;
   }, [filteredReservations, daysList, slots]);
 
-  return (
-    <div className="container max-w-6xl mx-auto py-6">
-      <h2 className="font-bold text-2xl mb-2">Statistiques des réservations</h2>
-      
-      {/* SECTION 1 : Filtres de date/période - toujours visibles */}
-      <div className="mb-4 flex flex-wrap gap-4 items-center bg-muted py-3 px-4 rounded-lg">
-        <div className="flex gap-2 flex-wrap items-center">
-          {/* Boutons navigation période */}
-          <div className="flex gap-1">
-            <Button variant="secondary" size="sm" onClick={() => handleNavigate("prev")}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => handleNavigate("next")}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-          {/* Choix de période */}
-          {PERIODS.map((p) => (
-            <Button
-              key={p.key}
-              variant={period === p.key ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPeriod(p.key)}
-            >
-              {p.label}
-            </Button>
-          ))}
-        </div>
-        {/* Sélection de date ou intervalle personnalisé */}
-        {period === "custom" ? (
-          <div className="flex gap-3 items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.start && "text-muted-foreground")}>
-                  {customRange.start ? format(customRange.start, "dd/MM/yyyy") : "Début"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <Calendar
-                  mode="single"
-                  selected={customRange.start}
-                  onSelect={(v) => setCustomRange(cr => ({...cr, start: v ?? null }))}
-                />
-              </PopoverContent>
-            </Popover>
-            <span>&rarr;</span>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className={cn("w-[130px] justify-start", !customRange.end && "text-muted-foreground")}>
-                  {customRange.end ? format(customRange.end, "dd/MM/yyyy") : "Fin"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <Calendar
-                  mode="single"
-                  selected={customRange.end}
-                  onSelect={(v) => setCustomRange(cr => ({...cr, end: v ?? null }))}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        ) : (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm">Date</Button>
-            </PopoverTrigger>
-            <PopoverContent>
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={d => d && setDate(d)}
-              />
-            </PopoverContent>
-          </Popover>
-        )}
-
-        {/* BOUTON POUR AFFICHER/MASQUER LES FILTRES AVANCÉS */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto"
-          onClick={() => setAdvancedFiltersVisible(v => !v)}
-        >
-          {advancedFiltersVisible ? "Masquer les filtres avancés" : "Afficher les filtres avancés"}
-        </Button>
-      </div>
-
-      {/* Libellé période affichée */}
-      {getPeriodLabel() && (
-        <div className="mb-3 text-muted-foreground text-sm font-medium">
-          {getPeriodLabel()}
-        </div>
-      )}
-
-      {/* SECTION 2 : Filtres avancés - salles, tables, horaires... */} 
-      {advancedFiltersVisible && (
-        <div className="flex flex-wrap gap-4 items-center bg-muted py-3 px-4 mb-4 rounded-lg">
-          {/* Salles */}
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Salles&nbsp;:</span>
-            <div className="flex gap-2 flex-wrap">
-              {salleOptions.map(opt => (
-                <label key={opt.value} className="flex items-center gap-1">
-                  <Checkbox checked={selectedSalleIds.includes(opt.value)}
-                    onCheckedChange={() => handleSalleSelect(opt.value)}
-                    id={`salle-${opt.value}`} />
-                  <span>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          {/* Tables */}
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Tables&nbsp;:</span>
-            <div className="flex gap-2 flex-wrap">
-              {tableOptions.map(opt => (
-                <label key={opt.value} className="flex items-center gap-1">
-                  <Checkbox checked={selectedTableIds.includes(opt.value)}
-                    onCheckedChange={() => handleTableSelect(opt.value)}
-                    id={`table-${opt.value}`}/>
-                  <span>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          {/* Plage horaire */}
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Horaires&nbsp;:</span>
-            <div className="flex gap-2">
-              {TIME_FILTERS.map(opt => (
-                <label key={opt.key} className="flex items-center gap-1">
-                  <Checkbox checked={selectedTimes.includes(opt.key)}
-                    onCheckedChange={() => handleTimeSelect(opt.key)}
-                    id={`time-${opt.key}`}/>
-                  <span>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Indicateurs principaux */}
-      <StatisticSummary
-        reservations={totalReservations}
-        personnes={totalPersonnes}
-        jours={distinctDaysWithReservation}
-      />
-
-      {/* Graphe courbe réservations */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>
-            Historique du nombre de réservations
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ReservationLineChart data={chartData} />
-        </CardContent>
-      </Card>
-
-      {/* Graphe barres personnes */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>
-            Historique du nombre de personnes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <StatisticsChart data={chartData} />
-        </CardContent>
-      </Card>
-
       {/* HEATMAP RÉPARTITION PAR CRÉNEAUX */}
       <Card>
         <CardHeader>
           <CardTitle>
-            Heatmap des réservations par créneau de 30 min
+            Heatmap des réservations par créneau (matin/midi/soir)
           </CardTitle>
         </CardHeader>
         <CardContent>

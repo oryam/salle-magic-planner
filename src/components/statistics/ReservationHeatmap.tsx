@@ -1,22 +1,21 @@
 
 import React from "react";
-import { ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 
 type HeatmapDatum = {
-  slot: string;  // e.g., '10:30'
+  slot: string;  // Matin/Midi/Soir
   date: string;  // formatted yyyy-MM-dd
   count: number;
 };
 
 type Props = {
   data: HeatmapDatum[];
-  slots: string[];
-  days: string[];
+  slots: string[];    // ["Matin", "Midi", "Soir"]
+  days: string[];     // ["2024-06-10", ...]
 };
 
 const COLORS = [
-  "#f0fdf4", // 0
+  "#f0fdf4", // 0 réservation
   "#bbf7d0", // 1-2
   "#6ee7b7", // 3-4
   "#34d399", // 5-7
@@ -31,8 +30,14 @@ function colorForCount(count: number): string {
   return COLORS[4];
 }
 
+const LABELS: {[x: string]: string} = {
+  "Matin": "Matin (6h-11h)",
+  "Midi": "Midi (11h-15h)",
+  "Soir": "Soir (18h-23h30)",
+};
+
 const ReservationHeatmap: React.FC<Props> = ({ data, slots, days }) => {
-  // Crée une map date-slot -> count pour lookup rapide
+  // Map for fast lookup
   const map = React.useMemo(() => {
     const m = new Map<string, number>();
     for (const d of data) {
@@ -46,7 +51,7 @@ const ReservationHeatmap: React.FC<Props> = ({ data, slots, days }) => {
       <table className="border-collapse w-full">
         <thead>
           <tr>
-            <th className="border bg-muted px-1 py-2 text-xs sticky left-0 bg-muted z-10">Heure</th>
+            <th className="border bg-muted px-1 py-2 text-xs sticky left-0 bg-muted z-10">Créneau</th>
             {days.map((day) => (
               <th key={day} className="border bg-muted px-1 py-2 text-xs">
                 {(() => {
@@ -60,22 +65,22 @@ const ReservationHeatmap: React.FC<Props> = ({ data, slots, days }) => {
         <tbody>
           {slots.map((slot) => (
             <tr key={slot}>
-              <th className="border bg-muted px-1 py-1 text-xs sticky left-0 bg-muted z-10">{slot}</th>
+              <th className="border bg-muted px-1 py-1 text-xs sticky left-0 bg-muted z-10">{LABELS[slot] ?? slot}</th>
               {days.map((day) => {
                 const cnt = map.get(`${day}|${slot}`) || 0;
                 return (
                   <td
                     key={day}
                     className={cn(
-                      "border px-1 py-0.5 text-center text-xs transition-colors duration-200 cursor-pointer",
+                      "border px-1 py-2 text-center text-xs transition-colors duration-200 cursor-pointer",
                       cnt === 0 ? "text-gray-400" : "font-bold",
                     )}
                     style={{
                       background: colorForCount(cnt),
-                      minWidth: 28,
-                      minHeight: 24,
+                      minWidth: 32,
+                      minHeight: 28,
                     }}
-                    title={`${cnt} réservation${cnt > 1 ? "s" : ""} à ${slot} le ${day}`}
+                    title={`${cnt} réservation${cnt > 1 ? "s" : ""} (${LABELS[slot] ?? slot}) le ${day}`}
                   >
                     {cnt === 0 ? "" : cnt}
                   </td>
@@ -86,7 +91,7 @@ const ReservationHeatmap: React.FC<Props> = ({ data, slots, days }) => {
         </tbody>
       </table>
       <div className="flex gap-3 items-center mt-2 ml-1">
-        <span className="text-xs text-muted-foreground">Réservations :</span>
+        <span className="text-xs text-muted-foreground">Réservations&nbsp;:</span>
         {COLORS.map((c, i) => (
           <span key={i} className="flex items-center gap-1 text-xs">
             <span className="inline-block w-5 h-4 rounded" style={{ background: c }} />
