@@ -51,7 +51,7 @@ const saveToStorage = (key: string, data: any) => {
   }
 };
 
-const loadFromStorage = <T>(key: string, defaultValue: T): T => {
+const loadFromStorage = <T extends any>(key: string, defaultValue: T): T => {
   try {
     const stored = localStorage.getItem(key);
     if (stored) {
