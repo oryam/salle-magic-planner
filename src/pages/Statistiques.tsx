@@ -326,10 +326,10 @@ const Statistiques = () => {
   }, [filteredReservations, daysList, slots, period]);
 
   return (
-    <div className="px-2 sm:px-5 max-w-full w-full">
+    <div className="px-2 sm:px-5 max-w-full w-full bg-restaurant-gradient dark:bg-restaurant-dark min-h-screen transition-colors duration-500">
       {/* HEADER */}
       <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-        <h1 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-0 whitespace-nowrap">
+        <h1 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-0 whitespace-nowrap animated-gradient-title drop-shadow-sm">
           Statistiques
         </h1>
       </div>

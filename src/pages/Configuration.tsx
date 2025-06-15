@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,11 +47,13 @@ const Configuration = () => {
   const tablesForSalle = tables.filter(t => t.salleId === selectedSalleId);
 
   return (
-    <div className="min-h-screen bg-background p-2 sm:p-6">
+    <div className="min-h-screen p-2 sm:p-6 bg-restaurant-gradient dark:bg-restaurant-dark transition-colors duration-500">
       <div className="max-w-6xl mx-auto">
         {/* Header CRUD des salles et bouton Ajouter Table */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 space-y-4 sm:space-y-0">
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold">
+          <h1
+            className="text-lg sm:text-2xl md:text-3xl font-bold animated-gradient-title drop-shadow-sm"
+          >
             Configuration des tables
           </h1>
         </div>
