@@ -1,3 +1,4 @@
+
 import React, { useRef } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { Button } from "@/components/ui/button";
@@ -173,8 +174,8 @@ const ImportExport = () => {
     ref: React.RefObject<HTMLInputElement>,
     columns: string[],
     importFunc: (items: any[], replace?: boolean) => void,
-    rowMapFn?: (row: any) => any,
-    dataType: 'salles' | 'tables' | 'reservations'
+    dataType: 'salles' | 'tables' | 'reservations',
+    rowMapFn?: (row: any) => any
   ) => {
     if (ref.current?.files && ref.current.files.length > 0) {
       const file = ref.current.files[0];
@@ -261,7 +262,7 @@ const ImportExport = () => {
               ref={salleInputRef}
               className="hidden"
               onChange={() =>
-                handleImportCsv(salleInputRef, SallesColumns, importSalles, undefined, 'salles')
+                handleImportCsv(salleInputRef, SallesColumns, importSalles, 'salles')
               }
             />
           </div>
@@ -303,7 +304,7 @@ const ImportExport = () => {
               ref={tableInputRef}
               className="hidden"
               onChange={() =>
-                handleImportCsv(tableInputRef, TablesColumns, importTables, rowToTable, 'tables')
+                handleImportCsv(tableInputRef, TablesColumns, importTables, 'tables', rowToTable)
               }
             />
           </div>
@@ -354,8 +355,8 @@ const ImportExport = () => {
                   reservationInputRef,
                   ReservationsColumns,
                   importReservations,
-                  reservationRowToObj, // gère format date FR
-                  'reservations'
+                  'reservations',
+                  reservationRowToObj
                 )
               }
             />
