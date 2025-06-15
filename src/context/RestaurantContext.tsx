@@ -100,12 +100,25 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     saveToStorage(STORAGE_KEYS.RESERVATIONS, reservations);
   }, [reservations]);
 
-  // Fonctions d'import modifiées pour supporter le mode remplacement
+  // Fonctions d'import modifiées pour gérer les doublons
   const importSalles = (newSalles: Salle[], replace: boolean = false) => {
     if (replace) {
       setSalles([...newSalles]);
     } else {
-      setSalles(prev => [...prev, ...newSalles]);
+      setSalles(prev => {
+        const updated = [...prev];
+        newSalles.forEach(newSalle => {
+          const existingIndex = updated.findIndex(s => s.id === newSalle.id);
+          if (existingIndex >= 0) {
+            // Mettre à jour l'élément existant
+            updated[existingIndex] = { ...updated[existingIndex], ...newSalle };
+          } else {
+            // Ajouter le nouvel élément
+            updated.push(newSalle);
+          }
+        });
+        return updated;
+      });
     }
   };
 
@@ -113,7 +126,20 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     if (replace) {
       setTables([...newTables]);
     } else {
-      setTables(prev => [...prev, ...newTables]);
+      setTables(prev => {
+        const updated = [...prev];
+        newTables.forEach(newTable => {
+          const existingIndex = updated.findIndex(t => t.id === newTable.id);
+          if (existingIndex >= 0) {
+            // Mettre à jour l'élément existant
+            updated[existingIndex] = { ...updated[existingIndex], ...newTable };
+          } else {
+            // Ajouter le nouvel élément
+            updated.push(newTable);
+          }
+        });
+        return updated;
+      });
     }
   };
 
@@ -127,7 +153,20 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     if (replace) {
       setReservations([...validatedReservations]);
     } else {
-      setReservations(prev => [...prev, ...validatedReservations]);
+      setReservations(prev => {
+        const updated = [...prev];
+        validatedReservations.forEach(newReservation => {
+          const existingIndex = updated.findIndex(r => r.id === newReservation.id);
+          if (existingIndex >= 0) {
+            // Mettre à jour l'élément existant
+            updated[existingIndex] = { ...updated[existingIndex], ...newReservation };
+          } else {
+            // Ajouter le nouvel élément
+            updated.push(newReservation);
+          }
+        });
+        return updated;
+      });
     }
   };
 
