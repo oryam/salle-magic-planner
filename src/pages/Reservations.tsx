@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ import { format, addDays, addMonths, addYears, addWeeks, startOfDay, startOfMont
 import { fr } from 'date-fns/locale';
 import ReservationCalendarView from '@/components/ReservationCalendarView';
 
-type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee';
+type PeriodType = 'jour' | 'semaine' | 'mois' | 'annee' | '12mois' | 'custom';
 
 const ALL_SALLES_VALUE = "all";
 
@@ -37,6 +38,8 @@ const Reservations = () => {
       case 'semaine': return startOfWeek(currentDate, { weekStartsOn: 1 });
       case 'mois': return startOfMonth(currentDate);
       case 'annee': return startOfYear(currentDate);
+      case '12mois': return startOfYear(currentDate);
+      case 'custom': return startOfDay(currentDate);
     }
   };
 
@@ -50,7 +53,10 @@ const Reservations = () => {
         case 'mois':
           return direction === 'next' ? addMonths(prev, 1) : addMonths(prev, -1);
         case 'annee':
+        case '12mois':
           return direction === 'next' ? addYears(prev, 1) : addYears(prev, -1);
+        case 'custom':
+          return direction === 'next' ? addDays(prev, 1) : addDays(prev, -1);
       }
     });
   };
